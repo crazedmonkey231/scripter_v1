@@ -1,6 +1,6 @@
 import pygame
 from pygame import Surface, Vector2, Rect
-from pygame.sprite import Sprite
+from pygame.sprite import Sprite, GroupSingle
 import shared
 import util
 from binding_manager import add_binding
@@ -28,22 +28,24 @@ class PlayerController(Sprite):
 
         def click(event):
             if event.button == 1:
-                sprite = shared.get_plain_sprite("fsh")
-                sprite.rect.center = event.pos
-                sprite.layer = -1
-                level.add(sprite)
+                pass
 
-                Sequencer(
-                    LerpRotation(sprite, shared.screen_size_half),
-                    TickWait(15),
-                    LerpPosition(sprite, shared.screen_size_half),
-                    TickWait(15),
-                    Sequencer(
-                        LerpPosition(sprite, self, True),
-                        LerpRotation(sprite, self, True),
-                        DestroySpritePosition(sprite, self)
-                    ).build(True, True),
-                ).build(True).start()
+                # sprite = shared.get_plain_sprite("fsh")
+                # sprite.rect.center = event.pos
+                # sprite.layer = -1
+                # level.add(sprite)
+                #
+                # Sequencer(
+                #     LerpRotation(sprite, shared.screen_size_half),
+                #     TickWait(15),
+                #     LerpPosition(sprite, shared.screen_size_half),
+                #     TickWait(15),
+                #     Sequencer(
+                #         LerpPosition(sprite, self, True),
+                #         LerpRotation(sprite, self, True),
+                #         DestroySpritePosition(sprite, self)
+                #     ).build(True, True),
+                # ).build(True).start()
 
                 # Sequencer(
                 #     LerpPosition(sprite, self),

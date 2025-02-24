@@ -13,11 +13,11 @@ import pygame
 import numpy
 import PIL
 
-import util
-from binding_manager import do_bindings
-import game
-from level import level
 import shared
+import util
+import game
+from binding_manager import do_bindings
+from level import level
 from task_manager import task_manager, Task, Sequencer, TimeWait, Transition
 
 
