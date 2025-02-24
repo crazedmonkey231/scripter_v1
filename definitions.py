@@ -1,6 +1,10 @@
 import collisions
 import util
 
+# Definitions for game objects.
+# These are auto loaded into the definition registry and can be spawned via their name.
+# game_object.spawn_game_object("simple_effect")
+
 simple_effect = {
     "class": "PhysicsBox",
     "layer": 0,
