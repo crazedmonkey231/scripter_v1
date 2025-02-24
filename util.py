@@ -112,7 +112,7 @@ def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color
         end = (rects[i + 1].centerx - bounding_rect.left, rects[i + 1].centery - bounding_rect.top)
         pygame.draw.line(surface, line_color, start, end, thickness)
 
-    return surface, surface.get_rect()
+    return surface, bounding_rect
 
 
 # Get a ndarray matrix of a surface filled with rgba values of pixels
