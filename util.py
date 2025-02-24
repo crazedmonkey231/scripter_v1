@@ -53,6 +53,43 @@ def map_range_clamped(value, start1, stop1, start2, stop2):
     return clamp_value(map_range(value, start1, stop1, start2, stop2), start2, stop2)
 
 
+# Lerp between two angles, handling wraparound correctly.
+def lerp_angle(start, end, t, factor=1):
+    diff = (end - start + 180) % 360 - 180  # Get shortest rotation direction
+    t = min(t * factor, 1)
+    return start + diff * t  # Lerp the angle
+
+
+# Check if two angles are approximately equal within a small threshold.
+def angles_equal(angle1, angle2, threshold=0.5):
+    return abs((angle1 - angle2 + 180) % 360 - 180) < threshold
+
+
+def get_bounding_rect_from_center(rects):
+    if not rects:
+        return None
+
+    # Find min and max for x and y
+    min_x = min(rect.left for rect in rects)
+    max_x = max(rect.right for rect in rects)
+    min_y = min(rect.top for rect in rects)
+    max_y = max(rect.bottom for rect in rects)
+
+    # Width and height of the bounding rectangle
+    width = max_x - min_x
+    height = max_y - min_y
+
+    # Calculate the center
+    center_x = min_x + width // 2
+    center_y = min_y + height // 2
+
+    # Create the bounding rect from the center
+    bounding_rect = pygame.Rect(0, 0, width, height)
+    bounding_rect.center = (center_x, center_y)
+
+    return bounding_rect
+
+
 # Get a ndarray matrix of a surface filled with rgba values of pixels
 def get_rgba_pixel_array(surface: Surface):
     w, h = surface.get_size()
@@ -475,15 +512,14 @@ def clear_circle_particles(draw_surface: Surface, particles: list):
 # End particle utils
 #
 
+BODY_TYPE_STATIC = pymunk.Body.STATIC
+BODY_TYPE_DYNAMIC = pymunk.Body.DYNAMIC
+BODY_TYPE_KINEMATIC = pymunk.Body.KINEMATIC
+
 
 def flip_y(point):
     from shared import canvas_size
     return point[0], -point[1] + canvas_size.y
-
-
-BODY_TYPE_STATIC = pymunk.Body.STATIC
-BODY_TYPE_DYNAMIC = pymunk.Body.DYNAMIC
-BODY_TYPE_KINEMATIC = pymunk.Body.KINEMATIC
 
 
 def create_body(params, **kwargs):
@@ -534,18 +570,6 @@ def create_physics_box(size: Sequence[float], **kwargs):
     return create_physics_poly(**p)
 
 
-def lerp_angle(start, end, t, factor=1):
-    """Lerp between two angles, handling wraparound correctly."""
-    diff = (end - start + 180) % 360 - 180  # Get shortest rotation direction
-    t = min(t * factor, 1)
-    return start + diff * t  # Lerp the angle
-
-
-def angles_equal(angle1, angle2, threshold=0.5):
-    """Check if two angles are approximately equal within a small threshold."""
-    return abs((angle1 - angle2 + 180) % 360 - 180) < threshold
-
-
 def rotate_body_toward_position(body, target_pos, rotation_speed=5):
     dx = target_pos[0] - body.position.x
     dy = target_pos[1] - body.position.y
@@ -558,31 +582,6 @@ def rotate_body_toward_position(body, target_pos, rotation_speed=5):
     # Apply torque based on angle difference
     torque = angle_diff * rotation_speed * 10 ** 5
     body.torque = torque
-
-
-def get_bounding_rect_from_center(rects):
-    if not rects:
-        return None
-
-    # Find min and max for x and y
-    min_x = min(rect.left for rect in rects)
-    max_x = max(rect.right for rect in rects)
-    min_y = min(rect.top for rect in rects)
-    max_y = max(rect.bottom for rect in rects)
-
-    # Width and height of the bounding rectangle
-    width = max_x - min_x
-    height = max_y - min_y
-
-    # Calculate the center
-    center_x = min_x + width // 2
-    center_y = min_y + height // 2
-
-    # Create the bounding rect from the center
-    bounding_rect = pygame.Rect(0, 0, width, height)
-    bounding_rect.center = (center_x, center_y)
-
-    return bounding_rect
 
 
 def get_overlapping_bodies(space, pos):
