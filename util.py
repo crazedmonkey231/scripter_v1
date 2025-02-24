@@ -99,7 +99,7 @@ def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color
         bounding_rect = get_bounding_rect_from_center(rects)
 
     if surface is None:
-        surface = pygame.Surface(bounding_rect.size).convert_alpha()
+        surface = Surface(bounding_rect.size).convert_alpha()
 
     if fill_color is not None:
         surface.fill(fill_color)
