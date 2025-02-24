@@ -90,6 +90,31 @@ def get_bounding_rect_from_center(rects):
     return bounding_rect
 
 
+def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color=None,
+                             line_color=(255, 255, 255), thickness=10):
+    if len(rects) < 2:
+        return  # Need at least 2 rectangles to draw lines
+
+    if bounding_rect is None:
+        bounding_rect = get_bounding_rect_from_center(rects)
+
+    if surface is None:
+        surface = pygame.Surface(bounding_rect.size).convert_alpha()
+
+    if fill_color is not None:
+        surface.fill(fill_color)
+    else:
+        surface.fill((0, 0, 0, 0))
+
+    # Offset and draw lines between rectangle centers
+    for i in range(len(rects) - 1):
+        start = (rects[i].centerx - bounding_rect.left, rects[i].centery - bounding_rect.top)
+        end = (rects[i + 1].centerx - bounding_rect.left, rects[i + 1].centery - bounding_rect.top)
+        pygame.draw.line(surface, line_color, start, end, thickness)
+
+    return surface, surface.get_rect()
+
+
 # Get a ndarray matrix of a surface filled with rgba values of pixels
 def get_rgba_pixel_array(surface: Surface):
     w, h = surface.get_size()
@@ -217,17 +242,6 @@ def generate_simple_id(size: int = 10):
     characters = string.ascii_letters + string.digits
     random_id = ''.join(random.choices(characters, k=size))
     return random_id
-
-
-def draw_lines_between_rects(surface, rects, bounding_rect, color=(255, 255, 255), thickness=10):
-    if len(rects) < 2:
-        return  # Need at least 2 rectangles to draw lines
-
-    # Offset and draw lines between rectangle centers
-    for i in range(len(rects) - 1):
-        start = (rects[i].centerx - bounding_rect.left, rects[i].centery - bounding_rect.top)
-        end = (rects[i + 1].centerx - bounding_rect.left, rects[i + 1].centery - bounding_rect.top)
-        pygame.draw.line(surface, color, start, end, thickness)
 
 
 # Grid generator
