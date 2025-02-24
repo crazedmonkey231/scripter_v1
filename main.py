@@ -25,7 +25,7 @@ if shared.debug:
     util.log([numpy, PIL])
 
 Sequencer(
-    TimeWait(.25),
+    TimeWait(0.25),
     Transition(time=1),
     TimeWait(0.25),
     Task(game.run_game)
