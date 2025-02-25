@@ -6,7 +6,7 @@ import util
 from binding_manager import add_binding
 from level import level
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition, GifAnimation
+    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound
 
 
 class PlayerController(Sprite):
@@ -32,27 +32,28 @@ class PlayerController(Sprite):
             if event.button == 1:
                 pass
 
-                gif = shared.get_gif("ball")
-                sprite = Sprite()
-                sprite.image = gif[0]
-                sprite.rect = sprite.image.get_rect(center=event.pos)
+                # gif = shared.get_gif("ball")
+                sprite = shared.get_plain_sprite("fsh")
+                sprite.rect.center = event.pos
                 sprite.layer = 1
                 level.add(sprite)
-                i = 1 if count[1] else -1
-                pos = shared.screen_size_half + Vector2(8 * count[0] * i, 0)
-                count[0] += 1
-                count[1] = not count[1]
+                # i = 1 if count[1] else -1
+                # pos = shared.screen_size_half + Vector2(8 * count[0] * i, 0)
+                # count[0] += 1
+                # count[1] = not count[1]
 
                 Sequencer(
-                    GifAnimation(sprite, gif, 125),
-                    LerpPosition(sprite, pos),
-                    TickWait(2)
-                    # Sequencer(
-                        # LerpPosition(sprite, self, True),
-                        # GifAnimation(sprite, gif, 100),
-                        # LerpRotation(sprite, self, True),
-                        # DestroySpritePosition(sprite, self)
-                    # ).build(True, True),
+                    # GifAnimation(sprite, gif, 125),
+                    # LerpPosition(sprite, pos),
+                    PlaySound("chime_bell"),
+                    TickWait(50),
+                    Sequencer(
+                        LerpPosition(sprite, self, True),
+                        LerpRotation(sprite, self, True),
+                        DestroySpritePosition(sprite, self),
+                    ).on_end(
+                        PlaySound("chime_bell")
+                    ).build(True, True),
                 ).build(True).start()
 
                 # Sequencer(

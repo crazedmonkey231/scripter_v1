@@ -16,56 +16,62 @@ from pymunk import BB
 
 
 def log(msg):
+    """Default log function"""
     print(msg)
 
 
-# Simple tree maker
 def tree():
+    """Tree maker using defaultdict"""
     return defaultdict(tree)
 
 
 def is_all_of_type(objs, types):
+    """Is list of all type"""
     return all([isinstance(t, types) for t in objs])
 
 
 # Set cursor to image
 def set_cursor(img: Surface, offset=(0, 0)):
+    """Set mouse cursor with an offset"""
     pygame.mouse.set_cursor(offset, img)
 
 
 # Check inside widow bounds
 def is_within_screen_bounds(pos, screen_size):
+    """Check it pos is inside screen"""
     return 0 <= pos[0] <= screen_size[0] and 0 <= pos[1] <= screen_size[1]
 
 
-# Map a range to another
 def map_range(value, start1, stop1, start2, stop2):
+    """Map a range to another"""
     return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1))
 
 
-# Clamp value between range
 def clamp_value(value, start, stop):
+    """Clamp value between range"""
     return min(max(value, start), stop)
 
 
 # Map range clamped
 def map_range_clamped(value, start1, stop1, start2, stop2):
+    """Map and clamp value between range"""
     return clamp_value(map_range(value, start1, stop1, start2, stop2), start2, stop2)
 
 
-# Lerp between two angles, handling wraparound correctly.
 def lerp_angle(start, end, t, factor=1):
+    """Lerp between two angles, handling wraparound correctly."""
     diff = (end - start + 180) % 360 - 180  # Get shortest rotation direction
     t = min(t * factor, 1)
     return start + diff * t  # Lerp the angle
 
 
-# Check if two angles are approximately equal within a small threshold.
 def angles_equal(angle1, angle2, threshold=0.5):
+    """Check if two angles are approximately equal within a small threshold."""
     return abs((angle1 - angle2 + 180) % 360 - 180) < threshold
 
 
 def get_bounding_rect_from_center(rects):
+    """Get bounding rect from list of rects"""
     if not rects:
         return None
 
@@ -92,6 +98,7 @@ def get_bounding_rect_from_center(rects):
 
 def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color=None,
                              line_color=(255, 255, 255), thickness=10):
+    """Draw lines between rects returning a surface and the bounding rect"""
     if len(rects) < 2:
         return  # Need at least 2 rectangles to draw lines
 
@@ -115,8 +122,8 @@ def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color
     return surface, bounding_rect
 
 
-# Get a ndarray matrix of a surface filled with rgba values of pixels
 def get_rgba_pixel_array(surface: Surface):
+    """Get a ndarray matrix of a surface filled with rgba values of pixels"""
     w, h = surface.get_size()
     s = w * h
     a_matrix: ndarray = numpy.zeros((w, h, 4))
@@ -127,8 +134,8 @@ def get_rgba_pixel_array(surface: Surface):
     return a_matrix
 
 
-# Get an outline ndarray matrix of a surface filled with rgba values of pixels with a given width
 def get_rgba_pixel_array_outline(surface: Surface, outline_color=(0, 255, 255, 255), outline_width: int = 3):
+    """Get an outline ndarray matrix of a surface filled with rgba values of pixels with a given width"""
     w, h = surface.get_size()
     s = w * h
     a_matrix: ndarray = numpy.zeros((w, h, 4))
@@ -153,8 +160,8 @@ def get_rgba_pixel_array_outline(surface: Surface, outline_color=(0, 255, 255, 2
     return a_matrix
 
 
-# Write a ndarray matrix of colors onto a surface
 def write_rgb_pixel_array(surface: Surface, matrix: ndarray):
+    """Write a ndarray matrix of colors onto a surface"""
     w, h = surface.get_size()
     s = w * h
     for i in range(s):
@@ -163,90 +170,71 @@ def write_rgb_pixel_array(surface: Surface, matrix: ndarray):
         surface.set_at((row, col), matrix[row, col])
 
 
-# Mask based sprite collisions
 def get_sprite_collide_by_mask(source: Sprite, group: AbstractGroup, do_kill: bool = False) -> list[Sprite]:
+    """Mask based sprite collisions"""
     return pygame.sprite.spritecollide(source, group, do_kill, pygame.sprite.collide_mask)
 
 
-# Rotate image
-# Example:
-# self.current_angle -= self.rotation_speed
-# self.image, self.rect = toolbox.util.rotate_image(self.original_image, self.current_angle, self.rect.center)
 def rotate_image(original_image: Surface, angle: float, center) -> tuple[Surface, Rect]:
+    """Rotate image"""
     rotated_image = pygame.transform.rotate(original_image, angle)
     new_rect = rotated_image.get_rect(center=center)
     return rotated_image, new_rect
 
 
-# Scale image basic.
-# Example:
-# orig_x, orig_y = self.original_image.get_size()
-# size_x = orig_x + round(self.grow)
-# size_y = orig_y + round(self.grow)
-# self.image, self.rect = toolbox.util.scale_image_basic(self.original_image, (size_x, size_y), self.rect.center)
 def scale_image_basic(original_image: Surface, new_size: tuple, center) -> tuple[Surface, Rect]:
+    """Scale image basic"""
     new_image = pygame.transform.scale(original_image, new_size)
     new_rect = new_image.get_rect(center=center)
     return new_image, new_rect
 
 
-# Scale image smooth.
-# Example:
-# orig_x, orig_y = self.original_image.get_size()
-# size_x = orig_x + round(self.grow)
-# size_y = orig_y + round(self.grow)
-# self.image, self.rect = toolbox.util.scale_image_smooth(self.original_image, (size_x, size_y), self.rect.center)
 def scale_image_smooth(original_image: Surface, new_size: Sequence[float], center) -> tuple[Surface, Rect]:
+    """Scale image smooth"""
     new_image = pygame.transform.smoothscale(original_image, new_size)
     new_rect = new_image.get_rect(center=center)
     return new_image, new_rect
 
 
-def create_hover_img(surface: Surface):
+def create_hover_img(surface: Surface, color=(100, 100, 100, 150)):
+    """Create a simple hover image"""
     s = surface.copy().convert_alpha()
-    s.fill((100, 100, 100, 150))
+    s.fill(color)
     s2 = surface.copy()
     s2.blit(s, (0, 0))
     return s2, s2.get_rect()
 
 
-def create_sized_hover_img(surface: Surface, size=(64, 64), center=(0, 0)):
+def create_sized_img(surface: Surface, size=(64, 64), center=(0, 0)):
+    """Create a scaled image"""
     s = surface.copy().convert_alpha()
     return scale_image_basic(s, size, center)
 
 
-# Sin curve movement, add this to the default location of the rect for hover movement in the sprite update method.
-# Example:
-# center = self.rect.center
-# rect_y = 250 + self.float_movement_sin()
-# self.rect.center = (center[0], rect_y)
 def float_movement_sin(amplitude: float = 25, speed: float = 1):
+    """Sin curve movement"""
     time = pygame.time.get_ticks()
     delta = amplitude * math.sin(speed * time)
     return delta
 
 
-# Cos curve movement, add this to the default location of the rect for hover movement in the sprite update method.
-# Example:
-# center = self.rect.center
-# rect_y = 250 + self.float_movement_cos()
-# self.rect.center = (center[0], rect_y)
 def float_movement_cos(amplitude: float = 25, speed: float = 1):
+    """Cos curve movement"""
     time = pygame.time.get_ticks()
     delta = amplitude * math.cos(speed * time)
     return delta
 
 
-# Generate simple id of a given size
 def generate_simple_id(size: int = 10):
+    """Generate simple id"""
     characters = string.ascii_letters + string.digits
     random_id = ''.join(random.choices(characters, k=size))
     return random_id
 
 
-# Grid generator
 def generate_grid(grid_size: Sequence[int], grid_tile_size: Sequence[int], grid_tile_padding: Sequence[int] = (0, 0),
                   grid_tile_offset: Sequence[int] = (0, 0)):
+    """Generate grid"""
     width = grid_size[0]
     height = grid_size[1]
     s = width * height
@@ -261,8 +249,8 @@ def generate_grid(grid_size: Sequence[int], grid_tile_size: Sequence[int], grid_
     return points
 
 
-# Line generator
 def generate_line(start_pos: Vector2, target_pos: Vector2):
+    """Generate line"""
     points = []
     dist_target = target_pos - start_pos
     dist_target_len = dist_target.length()
@@ -277,9 +265,9 @@ def generate_line(start_pos: Vector2, target_pos: Vector2):
     return points
 
 
-# Arch generator
 def generate_arch(start_pos: Vector2, target_pos: Vector2, max_arch_height: float = 100, max_arch_delta: float = 10,
                   inverse: bool = False):
+    """Generate arch"""
     points = []
     inverse = -1 if inverse else 1
     dist_target = target_pos - start_pos
@@ -302,8 +290,8 @@ def generate_arch(start_pos: Vector2, target_pos: Vector2, max_arch_height: floa
     return points
 
 
-# Circle generator
 def generate_circle(center_pos: Vector2, radius: float = 5, start_x_offset: float = 0, start_y_offset: float = 0):
+    """Generate circle"""
     points = []
     start_x = center_pos.x + radius * start_x_offset
     start_y = center_pos.y + radius * start_y_offset
@@ -315,8 +303,8 @@ def generate_circle(center_pos: Vector2, radius: float = 5, start_x_offset: floa
     return points
 
 
-# Interpolates between color1 and color2 using a factor.
 def interpolate_color_rgb(color1, color2, factor) -> tuple[int, int, int]:
+    """Interpolates between color1 and color2 using a factor."""
     r1, g1, b1 = color1
     r2, g2, b2 = color2
     r = clamp_value(int(r1 + (r2 - r1) * factor), 0, 255)
@@ -325,8 +313,8 @@ def interpolate_color_rgb(color1, color2, factor) -> tuple[int, int, int]:
     return r, g, b
 
 
-# Interpolates between color1 and color2 using a factor.
 def interpolate_color_rgba(color1, color2, factor) -> tuple[int, int, int, int]:
+    """Interpolates between color1 and color2 using a factor."""
     r1, g1, b1, a1 = color1
     r2, g2, b2, a2 = color2
     r = clamp_value(int(r1 + (r2 - r1) * factor), 0, 255)
@@ -338,6 +326,7 @@ def interpolate_color_rgba(color1, color2, factor) -> tuple[int, int, int, int]:
 
 # Simple text maker rgba
 def make_simple_text(**kwargs) -> tuple[Surface, Rect]:
+    """Text maker"""
     text = kwargs.get("text")
     text_size = 64
     if ts := kwargs.get("size"):
@@ -364,8 +353,8 @@ TREND_DECREASING = "Decreasing"
 TREND_INCREASING = "Increasing"
 
 
-# Gets a trend value along with associated text using a data list with specified index
 def get_data_trend(data: list[tuple], idx: int = 0, length: int = 7) -> tuple[str, float]:
+    """Gets a trend value along with associated text using a data list with specified index"""
     if not data or len(data) < 2 or length <= 0:
         return TREND_NEUTRAL, 0
     f_data = data[-length:]
@@ -391,8 +380,8 @@ M_TXT_LOW = "Low"
 M_TXT_NEUTRAL = "Neutral"
 
 
-# Simple getter for text for a multiplier
 def get_multiplier_text(amount: float) -> str:
+    """Simple getter for text for a multiplier"""
     if amount > 1:
         return M_TXT_HIGH
     elif amount < 1:
@@ -401,9 +390,8 @@ def get_multiplier_text(amount: float) -> str:
         return M_TXT_NEUTRAL
 
 
-# Get graph points
-# Output can be directly used with pygame.draw.lines
 def get_graph_points(size: Sequence[int], data_list: list[float]) -> list[tuple[int, int]]:
+    """Get graph points. Output can be directly used with pygame.draw.lines"""
     draw_points = []
     if len(data_list) > 0:
         data_list = [0, *data_list]
@@ -439,22 +427,22 @@ def get_graph_points(size: Sequence[int], data_list: list[float]) -> list[tuple[
     return draw_points
 
 
-# Get Sprite distance from pos
 def get_sprite_distance(from_pos: Sequence[float], to_sprite: Sprite):
+    """Get Sprite distance from pos"""
     center = to_sprite.rect.center
     distance = (from_pos[0] - center[0]) ** 2 + (from_pos[1] - center[1]) ** 2
     return distance
 
 
-# Get Sprite distance from pos sqrt
 def get_sprite_distance_sqrt(from_pos: Sequence[float], to_sprite: Sprite):
+    """Get Sprite distance from pos, sqrt"""
     center = to_sprite.rect.center
     distance = math.sqrt(from_pos[0] - center[0] ** 2 + (from_pos[1] - center[1]) ** 2)
     return distance
 
 
-# Grab screen
 def mouse_grab(mouse_grabbed):
+    """Hide mouse and grab screen"""
     pygame.event.set_grab(mouse_grabbed)
     pygame.mouse.set_visible(not mouse_grabbed)
 
@@ -532,18 +520,32 @@ BODY_TYPE_KINEMATIC = pymunk.Body.KINEMATIC
 
 
 def flip_y(point):
+    """flip_y for physics objects in pymunk space"""
     from shared import canvas_size
     return point[0], -point[1] + canvas_size.y
 
 
 def create_body(params, **kwargs):
+    """Create a simple physics body"""
     body = pymunk.Body(*params)
     body.position = flip_y(kwargs.get("position", (0, 0)))
     body.velocity = kwargs.get("velocity", (0, 0))
     return body
 
 
+def create_physics_box(size: Sequence[float], **kwargs):
+    """Create a physics box"""
+    w = size[0] * 0.5
+    h = size[1] * 0.5
+    p = {
+        "points": [(-w, -h), (-w, h), (w, h), (w, -h)],
+        **kwargs
+    }
+    return create_physics_poly(**p)
+
+
 def create_physics_circle(radius: float, **kwargs):
+    """Create a physics circle"""
     mass = kwargs.get("mass", 1)
     body_type = kwargs.get("body_type", BODY_TYPE_STATIC)
     moment = pymunk.moment_for_circle(mass, 0, radius)
@@ -559,6 +561,7 @@ def create_physics_circle(radius: float, **kwargs):
 
 
 def create_physics_poly(**kwargs):
+    """Create a physics poly"""
     points = kwargs.get("points", [])
     mass = kwargs.get("mass", 1)
     body_type = kwargs.get("body_type", BODY_TYPE_STATIC)
@@ -574,17 +577,8 @@ def create_physics_poly(**kwargs):
     return body, shape
 
 
-def create_physics_box(size: Sequence[float], **kwargs):
-    w = size[0] * 0.5
-    h = size[1] * 0.5
-    p = {
-        "points": [(-w, -h), (-w, h), (w, h), (w, -h)],
-        **kwargs
-    }
-    return create_physics_poly(**p)
-
-
 def rotate_body_toward_position(body, target_pos, rotation_speed=5):
+    """Rotate a body toward a position"""
     dx = target_pos[0] - body.position.x
     dy = target_pos[1] - body.position.y
     angle_to_center = math.atan2(dy, dx)
@@ -599,12 +593,14 @@ def rotate_body_toward_position(body, target_pos, rotation_speed=5):
 
 
 def get_overlapping_bodies(space, pos):
+    """Gets all bodies at a point in space"""
     point_query = space.point_query(pos, 0, pymunk.ShapeFilter())
     bodies = [result.shape.body for result in point_query]
     return bodies
 
 
 def hover_physics_obj(space: Space, mouse_pos):
+    """Call the hover func on any physics body based game object at mouse location"""
     p = Vec2d(*flip_y(mouse_pos))
     # hit = space.point_query_nearest(p, 5, pymunk.ShapeFilter())
     bodies = get_overlapping_bodies(space, p)
@@ -617,6 +613,7 @@ def hover_physics_obj(space: Space, mouse_pos):
 
 
 def grab_physics_obj(space, mouse_pos, force=25):
+    """Grabs a physics object at mouse position"""
     p = Vec2d(*flip_y(mouse_pos))
     # hit = space.point_query_nearest(p, 5, pymunk.ShapeFilter())
 
@@ -649,12 +646,14 @@ def grab_physics_obj(space, mouse_pos, force=25):
 
 
 def click_physics_obj(space, mouse_pos):
+    """Call the clicked func on any physics body based game object at mouse location"""
     i = hover_physics_obj(space, mouse_pos)
     if i is not None:
         i.clicked()
 
 
 def auto_geometry(surface: Surface):
+    """Create simple auto geometry lines from a surface, output can be used in create_physics_poly"""
     r = surface.get_rect()
     w = r.width
     h = r.height
@@ -681,6 +680,7 @@ def auto_geometry(surface: Surface):
 
 
 def auto_geometry_smooth(surface: Surface):
+    """Create simple auto geometry lines from a surface with smoothing, output can be used in create_physics_poly"""
     r = surface.get_rect()
     w = r.width
     h = r.height

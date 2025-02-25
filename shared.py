@@ -116,8 +116,13 @@ def get_sound(name: str) -> Sound:
     return sound
 
 
-def play_sound(name: str) -> Channel:
-    sound = get_sound(name)
+def play_sound(name: str | Sound) -> Channel:
+    if isinstance(name, str):
+        sound = get_sound(name)
+    elif isinstance(name, Sound):
+        sound = name
+    else:
+        return None
     channel = None
     if sound:
         sound.fadeout(0)

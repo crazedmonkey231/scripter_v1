@@ -6,6 +6,7 @@ import shared
 from typing import Callable, Sequence
 from level import level
 import util
+from pygame.mixer import Sound
 
 
 class Task(object):
@@ -167,6 +168,27 @@ class TimeWait(DelayTask):
         super().__init__(update, name, params)
 
 
+class PlaySound(CountTask):
+    def __init__(self, sound_name: str, looping: bool = False, name: str = "", params=([], {})):
+        s_data = [True, shared.get_sound(sound_name)]
+
+        def play_sound(task):
+            if s_data[0]:
+                shared.play_sound(s_data[1])
+                self.counter = s_data[1].get_length()
+                s_data[0] = False
+                return task.cont
+            else:
+                if looping:
+                    self.counter -= shared.delta_time
+                    if self.counter < 0:
+                        self.counter = 0
+                        s_data[0] = True
+                    return task.wait
+                return task.end
+        super().__init__(play_sound, name, params)
+
+
 class GifAnimation(CountTask):
     def __init__(self, sprite: Sprite, gif: str | list[Surface], gif_speed: float = 1, looping: bool = True,
                  name: str = "", params=([], {})):
@@ -272,11 +294,19 @@ class Transition(CountTask):
 
 
 class Sequencer(object):
-    def __init__(self, *task_list):
-        self.task_list: list[Task] = list(task_list)
+    def __init__(self, *tasks):
+        """Sequencer for game actions"""
+        self.task_list: list[Task] = list(tasks)
         self.current_idx: int = 0
+        self.end_tasks: list[Task] = None
+
+    def on_end(self, *end_tasks):
+        """Single execution end tasks"""
+        self.end_tasks = list(end_tasks)
+        return self
 
     def build(self, looping: bool = False, parallel: bool = False, name: str = "", params=([], {})):
+        """Build the sequencer into a Task"""
         def sequence(task):
             if self.task_list and not util.is_all_of_type(self.task_list, DelayTask):
                 if not parallel:
@@ -302,6 +332,11 @@ class Sequencer(object):
                         return task.end
                     return task.wait
             else:
+                if self.end_tasks:
+                    for task in self.end_tasks:
+                        task.execute()
+                    self.end_tasks = None
+                self.task_list = None
                 return task.end
 
         name = name if name else f"{self}-{util.generate_simple_id()}"
