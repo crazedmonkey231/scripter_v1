@@ -3,10 +3,9 @@ import pygame
 from pygame import Vector2, Surface
 from pygame.sprite import Sprite
 import shared
-from typing import Callable, Sequence
+from typing import Callable
 from level import level
 import util
-from pygame.mixer import Sound
 
 
 class Task(object):

@@ -73,7 +73,7 @@ class PlayerController(Sprite):
                 #     LerpRotation(sprite, self),
                 # ).build(True, True).start()
 
-                CircleFollow(sprite, self, 100, 25, step_size=2, looping=True).start()
+                CircleFollow(sprite, self, 100, 25, step_size=2, clockwise=False, looping=True).start()
 
                 # LerpRotation(sprite, self).start()
                 # LerpPosition(sprite, self).start()
