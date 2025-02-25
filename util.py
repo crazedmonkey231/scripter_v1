@@ -290,12 +290,13 @@ def generate_arch(start_pos: Vector2, target_pos: Vector2, max_arch_height: floa
     return points
 
 
-def generate_circle(center_pos: Vector2, radius: float = 5, start_x_offset: float = 0, start_y_offset: float = 0):
+def generate_circle(center_pos: Vector2, radius: float = 5, clockwise=True, step_size: int = 10):
     """Generate circle"""
     points = []
-    start_x = center_pos.x + radius * start_x_offset
-    start_y = center_pos.y + radius * start_y_offset
-    for angle in range(360):
+    start_x = center_pos[0]
+    start_y = center_pos[1]
+    r = range(0, 360, step_size) if clockwise else range(360, 0, -step_size)
+    for angle in r:
         r_angle = math.radians(angle)
         rect_x = start_x + math.cos(r_angle) * radius
         rect_y = start_y + math.sin(r_angle) * radius

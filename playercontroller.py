@@ -6,7 +6,7 @@ import util
 from binding_manager import add_binding
 from level import level
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound
+    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow
 
 
 class PlayerController(Sprite):
@@ -42,19 +42,19 @@ class PlayerController(Sprite):
                 # count[0] += 1
                 # count[1] = not count[1]
 
-                Sequencer(
-                    # GifAnimation(sprite, gif, 125),
-                    # LerpPosition(sprite, pos),
-                    PlaySound("chime_bell"),
-                    TickWait(50),
-                    Sequencer(
-                        LerpPosition(sprite, self, True),
-                        LerpRotation(sprite, self, True),
-                        DestroySpritePosition(sprite, self),
-                    ).on_end(
-                        PlaySound("chime_bell")
-                    ).build(True, True),
-                ).build(True).start()
+                # Sequencer(
+                #     # GifAnimation(sprite, gif, 125),
+                #     # LerpPosition(sprite, pos),
+                #     PlaySound("chime_bell"),
+                #     TickWait(50),
+                #     Sequencer(
+                #         LerpPosition(sprite, self, True),
+                #         LerpRotation(sprite, self, True),
+                #         DestroySpritePosition(sprite, self),
+                #     ).on_end(
+                #         PlaySound("chime_bell")
+                #     ).build(True, True),
+                # ).build(True).start()
 
                 # Sequencer(
                 #     LerpRotation(sprite, shared.screen_size_half),
@@ -72,6 +72,8 @@ class PlayerController(Sprite):
                 #     LerpPosition(sprite, self),
                 #     LerpRotation(sprite, self),
                 # ).build(True, True).start()
+
+                CircleFollow(sprite, self, 50, 25, step_size=5, looping=True).start()
 
                 # LerpRotation(sprite, self).start()
                 # LerpPosition(sprite, self).start()

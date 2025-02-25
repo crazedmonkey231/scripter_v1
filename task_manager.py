@@ -217,6 +217,36 @@ class GifAnimation(CountTask):
         super().__init__(update, name, params)
 
 
+class CircleFollow(CountTask):
+    def __init__(self, sprite: Sprite, target_sprite: Sprite, radius: float = 100, move_speed: float = 300,
+                 clockwise=True, step_size: int = 10, looping: bool = False, name: str = "", params=([], {})):
+        cached_pos = {}
+
+        def update(task):
+            if not sprite.alive() or not target_sprite.alive():
+                return task.end
+            center = Vector2(target_sprite.rect.center)
+            cached_center = (center.x, center.y)
+            if cached_center not in cached_pos:
+                line = util.generate_circle(center, radius, clockwise, step_size)
+                cached_pos[cached_center] = line
+            else:
+                line = cached_pos[cached_center]
+            if move_speed < 0 and self.counter == 0:
+                self.counter = len(line)
+            self.counter += move_speed * shared.delta_time
+            if 0 <= self.counter < len(line):
+                sprite.rect.center = line[int(self.counter)]
+                return task.wait
+            else:
+                if not looping:
+                    cached_pos.clear()
+                    return task.end
+                self.counter %= len(line)
+                return task.cont
+        super().__init__(update, name, params)
+
+
 class LerpLineTask(CountTask):
     def __init__(self, sprite: Sprite, line: list[Vector2], move_speed: float = 300, looping: bool = False,
                  name: str = "", params=([], {})):
@@ -253,9 +283,9 @@ class LerpPositionArch(LerpLineTask):
 
 
 class LerpPositionCircle(LerpLineTask):
-    def __init__(self, sprite: Sprite, center: Vector2, move_speed: float = 300, looping: bool = False,
-                 radius: float = 100, name: str = "", params=([], {})):
-        line = util.generate_circle(center, radius)
+    def __init__(self, sprite: Sprite, center: Vector2, radius: float = 100, move_speed: float = 300, clockwise=True,
+                 looping: bool = False, name: str = "", params=([], {})):
+        line = util.generate_circle(center, radius, clockwise)
         super().__init__(sprite, line, move_speed, looping, name, params)
 
 
