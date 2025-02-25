@@ -221,6 +221,7 @@ class CircleFollow(CountTask):
     def __init__(self, sprite: Sprite, target_sprite: Sprite, radius: float = 100, move_speed: float = 300,
                  clockwise=True, step_size: int = 10, looping: bool = False, name: str = "", params=([], {})):
         cached_pos = {}
+        move_speed = abs(move_speed)
 
         def update(task):
             if not sprite.alive() or not target_sprite.alive():
@@ -232,8 +233,6 @@ class CircleFollow(CountTask):
                 cached_pos[cached_center] = line
             else:
                 line = cached_pos[cached_center]
-            if move_speed < 0 and self.counter == 0:
-                self.counter = len(line)
             self.counter += move_speed * shared.delta_time
             if 0 <= self.counter < len(line):
                 sprite.rect.center = line[int(self.counter)]
