@@ -30,6 +30,24 @@ class Task(object):
             del task_manager.tasks[self.name]
 
 
+class CameraUpdate(Task):
+    def __init__(self, name: str = "", params=([], {})):
+        def update(task):
+            if shared.camera_target is not None:
+                camera_center = shared.camera_topleft + shared.screen_size_half
+                dv = shared.camera_target - camera_center
+                if dv.length() > 1:
+                    camera_center += dv.normalize() * (dv.length() * 1 / shared.camera_lag) * shared.delta_time
+                shared.camera_topleft = camera_center - shared.screen_size_half
+                shared.screen_rect.topleft = shared.camera_topleft
+                shared.screen_rect.size = shared.screen_size
+                return task.cont
+            else:
+                return task.end
+
+        super().__init__(update, name, params)
+
+
 class LerpPosition(Task):
     def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False, move_speed: float = 300,
                  name: str = "", params=([], {})):

@@ -6,7 +6,7 @@ import util
 from binding_manager import add_binding
 from level import level
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow
+    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow, CameraUpdate
 
 
 class PlayerController(Sprite):
@@ -15,6 +15,8 @@ class PlayerController(Sprite):
         self.image = Surface((1, 1)).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         self.rect = self.image.get_rect(center=shared.screen_size_half)
+
+        CameraUpdate().start()
 
         def toggle_pause(event):
             if event.key == pygame.K_SPACE:
@@ -33,10 +35,11 @@ class PlayerController(Sprite):
                 pass
 
                 # gif = shared.get_gif("ball")
-                sprite = shared.get_plain_sprite("fsh")
-                sprite.rect.center = event.pos
-                sprite.layer = 1
-                level.add(sprite)
+                # sprite = shared.get_plain_sprite("fsh")
+                # sprite.rect.center = event.pos
+                # sprite.layer = 1
+                # level.add(sprite)
+
                 # i = 1 if count[1] else -1
                 # pos = shared.screen_size_half + Vector2(8 * count[0] * i, 0)
                 # count[0] += 1
@@ -73,7 +76,7 @@ class PlayerController(Sprite):
                 #     LerpRotation(sprite, self),
                 # ).build(True, True).start()
 
-                CircleFollow(sprite, self, 100, 25, step_size=2, clockwise=False, looping=True).start()
+                # CircleFollow(sprite, self, 100, 25, step_size=2, clockwise=False, looping=True).start()
 
                 # LerpRotation(sprite, self).start()
                 # LerpPosition(sprite, self).start()
@@ -92,6 +95,7 @@ class PlayerController(Sprite):
         add_binding(pygame.MOUSEBUTTONDOWN, self, click)
 
         def mv(event):
-            self.rect.center = event.pos
+            self.rect.center = shared.local_to_world_pos(event.pos)
+            shared.camera_target = self.rect.center
 
         add_binding(pygame.MOUSEMOTION, self, mv)

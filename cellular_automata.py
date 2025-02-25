@@ -216,14 +216,12 @@ def start():
     def mouse_clicks(task):
         if mouse.alive():
             if can_click[0]:
+                mx, my = shared.get_mouse_pos()
                 if pygame.mouse.get_pressed()[0]:  # Left click = sand
-                    mx, my = pygame.mouse.get_pos()
                     spawn_particle(mx // GRID_SIZE, my // GRID_SIZE, SAND)
                 if pygame.mouse.get_pressed()[1]:  # Middle click = water
-                    mx, my = pygame.mouse.get_pos()
                     spawn_particle(mx // GRID_SIZE, my // GRID_SIZE, WATER)
                 if pygame.mouse.get_pressed()[2]:  # Right click = gas
-                    mx, my = pygame.mouse.get_pos()
                     spawn_particle(mx // GRID_SIZE, my // GRID_SIZE, GAS)
             can_click[0] = not can_click[0]
             return task.cont
