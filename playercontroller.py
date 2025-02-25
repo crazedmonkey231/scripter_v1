@@ -6,7 +6,7 @@ import util
 from binding_manager import add_binding
 from level import level
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition
+    LerpRotation, DestroySpritePosition, GifAnimation
 
 
 class PlayerController(Sprite):
@@ -26,15 +26,35 @@ class PlayerController(Sprite):
         # self.shapes = [shape]
         # self.body.position = util.flip_y(shared.screen_size_half)
 
+        count = [0, True]
+
         def click(event):
             if event.button == 1:
                 pass
 
-                # sprite = shared.get_plain_sprite("fsh")
-                # sprite.rect.center = event.pos
-                # sprite.layer = -1
-                # level.add(sprite)
-                #
+                gif = shared.get_gif("ball")
+                sprite = Sprite()
+                sprite.image = gif[0]
+                sprite.rect = sprite.image.get_rect(center=event.pos)
+                sprite.layer = 1
+                level.add(sprite)
+                i = 1 if count[1] else -1
+                pos = shared.screen_size_half + Vector2(8 * count[0] * i, 0)
+                count[0] += 1
+                count[1] = not count[1]
+
+                Sequencer(
+                    GifAnimation(sprite, gif, 125),
+                    LerpPosition(sprite, pos),
+                    TickWait(2)
+                    # Sequencer(
+                        # LerpPosition(sprite, self, True),
+                        # GifAnimation(sprite, gif, 100),
+                        # LerpRotation(sprite, self, True),
+                        # DestroySpritePosition(sprite, self)
+                    # ).build(True, True),
+                ).build(True).start()
+
                 # Sequencer(
                 #     LerpRotation(sprite, shared.screen_size_half),
                 #     TickWait(15),

@@ -68,10 +68,8 @@ class LerpRotation(Task):
     def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False, rotation_speed: float = 10,
                  rotation_lag=1, name: str = "", params=([], {})):
 
-        if hasattr(sprite, "original_image"):
-            original_image = sprite.original_image.copy()
-        else:
-            original_image = sprite.image.copy()
+        if not hasattr(sprite, "original_image"):
+            sprite.original_image = sprite.image.copy()
 
         if not hasattr(sprite, "angle"):
             sprite.angle = 0
@@ -93,7 +91,7 @@ class LerpRotation(Task):
             if not util.angles_equal(target_angle, sprite.angle, 0.5):
                 angle = util.lerp_angle(sprite.angle, target_angle, rotation_speed * shared.delta_time, rotation_lag)
                 sprite.angle = angle
-                sprite.image, sprite.rect = util.rotate_image(original_image, angle, center)
+                sprite.image, sprite.rect = util.rotate_image(sprite.original_image, angle, center)
                 return task.wait
             else:
                 if looping:
@@ -166,6 +164,34 @@ class TimeWait(DelayTask):
                 self.counter = 0
                 return task.cont
             return task.wait
+        super().__init__(update, name, params)
+
+
+class GifAnimation(CountTask):
+    def __init__(self, sprite: Sprite, gif: str | list[Surface], gif_speed: float = 1, looping: bool = True,
+                 name: str = "", params=([], {})):
+        g = None
+        if isinstance(gif, str):
+            g = shared.get_gif(gif)
+        elif isinstance(gif, list) and util.is_all_of_type(gif, Surface):
+            g = gif
+
+        def update(task):
+            if not sprite.alive() or g is None:
+                return task.end
+            if gif_speed < 0 and self.counter == 0:
+                self.counter = len(g)
+            self.counter += gif_speed * shared.delta_time
+            if 0 <= self.counter < len(g):
+                sprite.original_image = g[int(self.counter)]
+                sprite.image = sprite.original_image
+                sprite.rect = sprite.image.get_rect(center=sprite.rect.center)
+                return task.cont
+            else:
+                if not looping:
+                    return task.end
+                self.counter %= len(g)
+                return task.cont
         super().__init__(update, name, params)
 
 
