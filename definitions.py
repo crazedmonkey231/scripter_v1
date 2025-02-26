@@ -12,10 +12,10 @@ simple_effect = {
     "image_color": "yellow",
     "time_alive": 10,
     "mass": 1,
-    "density": 200,
-    "elasticity": 0.3,
+    "density": 100,
+    "elasticity": 0,
     "friction": 1,
-    "dampening": 10,
+    "dampening": .1,
     "body_type": util.BODY_TYPE_DYNAMIC,
     "collision_type": collisions.CT_DEFAULT,
     "tags": []

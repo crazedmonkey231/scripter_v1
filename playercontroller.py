@@ -1,10 +1,13 @@
 import pygame
 from pygame import Surface, Vector2, Rect
 from pygame.sprite import Sprite, GroupSingle
+
+import collisions
+import game_object
 import shared
 import util
 from binding_manager import add_binding
-from level import level
+from level import level, add_collision_handler
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
     LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow, CameraUpdate
 
@@ -12,21 +15,29 @@ from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircl
 class PlayerController(Sprite):
     def __init__(self):
         super().__init__()
-        self.image = Surface((1, 1)).convert_alpha()
+        size = (1, 1)
+        self.image = Surface(size).convert_alpha()
         self.image.fill((0, 0, 0, 0))
         self.rect = self.image.get_rect(center=shared.screen_size_half)
 
-        CameraUpdate().start()
+        # CameraUpdate().start()
 
         def toggle_pause(event):
             if event.key == pygame.K_SPACE:
                 shared.paused = not shared.paused
         add_binding(pygame.KEYDOWN, self, toggle_pause)
 
-        # body, shape = util.create_physics_box((64, 64), body_type=pymunk.Body.DYNAMIC)
+        # body, shape = util.create_physics_box(size, density=1000, mass=100, friction=10,
+        #                                       body_type=util.BODY_TYPE_KINEMATIC,
+        #                                       collision_type=collisions.CT_DEFAULT)
         # self.body = body
         # self.shapes = [shape]
-        # self.body.position = util.flip_y(shared.screen_size_half)
+        #
+        # game_object.spawn_bounds()
+        #
+        # game_object.spawn_game_object("simple_effect", shared.screen_size_half)
+
+        # add_collision_handler(collisions.CT_DEFAULT, collisions.CT_DEFAULT, lambda i, j, k: True)
 
         count = [0, True]
 
@@ -35,15 +46,16 @@ class PlayerController(Sprite):
                 pass
 
                 # gif = shared.get_gif("ball")
-                # sprite = shared.get_plain_sprite("fsh")
-                # sprite.rect.center = event.pos
-                # sprite.layer = 1
-                # level.add(sprite)
+                sprite = shared.get_plain_sprite("fsh")
+                sprite.rect.center = event.pos
+                sprite.layer = 1
+                level.add(sprite)
 
-                # i = 1 if count[1] else -1
-                # pos = shared.screen_size_half + Vector2(8 * count[0] * i, 0)
-                # count[0] += 1
-                # count[1] = not count[1]
+                Sequencer(
+                    CircleFollow(sprite, self, 50, 100, True, 1, True),
+                    LerpRotation(sprite, shared.screen_size_half,
+                                 looping=True),
+                ).build(True, True).start()
 
                 # Sequencer(
                 #     # GifAnimation(sprite, gif, 125),
@@ -76,8 +88,6 @@ class PlayerController(Sprite):
                 #     LerpRotation(sprite, self),
                 # ).build(True, True).start()
 
-                # CircleFollow(sprite, self, 100, 25, step_size=2, clockwise=False, looping=True).start()
-
                 # LerpRotation(sprite, self).start()
                 # LerpPosition(sprite, self).start()
 
@@ -96,6 +106,7 @@ class PlayerController(Sprite):
 
         def mv(event):
             self.rect.center = shared.local_to_world_pos(event.pos)
-            shared.camera_target = self.rect.center
+            # self.body.position = util.flip_y(self.rect.center)
+            # shared.camera_target = self.rect.center
 
         add_binding(pygame.MOUSEMOTION, self, mv)
