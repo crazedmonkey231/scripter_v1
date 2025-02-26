@@ -1,7 +1,6 @@
 import pygame
 from pygame import Surface, Vector2, Rect
 from pygame.sprite import Sprite, GroupSingle
-
 import collisions
 import game_object
 import shared
@@ -48,13 +47,12 @@ class PlayerController(Sprite):
                 # gif = shared.get_gif("ball")
                 sprite = shared.get_plain_sprite("fsh")
                 sprite.rect.center = event.pos
-                sprite.layer = 1
+                sprite.layer = 0
                 level.add(sprite)
 
                 Sequencer(
                     CircleFollow(sprite, self, 50, 100, True, 1, True),
-                    LerpRotation(sprite, shared.screen_size_half,
-                                 looping=True),
+                    # LerpRotation(sprite, shared.screen_size_half, True),
                 ).build(True, True).start()
 
                 # Sequencer(
@@ -107,6 +105,6 @@ class PlayerController(Sprite):
         def mv(event):
             self.rect.center = shared.local_to_world_pos(event.pos)
             # self.body.position = util.flip_y(self.rect.center)
-            # shared.camera_target = self.rect.center
+            shared.camera_target = self.rect.center
 
         add_binding(pygame.MOUSEMOTION, self, mv)

@@ -208,7 +208,7 @@ def spawn_particle(x, y, particle_type):
         active_cells.add((x, y))
 
 
-def start():
+def init():
     mouse = PlayerController()
     level.add(mouse)
     can_click = [True]
@@ -231,7 +231,7 @@ def start():
     Task(mouse_clicks, "mouse_clicks").start()
 
 
-def run(task):
+def game_loop(task):
     update_particles()
     draw_grid(shared.canvas)
     return task.cont

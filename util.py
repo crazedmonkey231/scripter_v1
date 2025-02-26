@@ -122,6 +122,13 @@ def draw_lines_between_rects(rects, surface=None, bounding_rect=None, fill_color
     return surface, bounding_rect
 
 
+def get_random_rgb():
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return r, g, b, 255
+
+
 def get_rgba_pixel_array(surface: Surface):
     """Get a ndarray matrix of a surface filled with rgba values of pixels"""
     w, h = surface.get_size()

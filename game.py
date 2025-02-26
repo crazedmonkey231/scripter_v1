@@ -1,11 +1,11 @@
-from task_manager import Task, Sequencer
-import cellular_automata
+from task_manager import Task
 
-game = cellular_automata
+# import cellular_automata as game
+import platformer as game
 
 
 def run_game(task):
-    game.start()
-    Task(game.run, "game_loop").start()
+    game.init()
+    Task(game.game_loop, "game_loop").start()
     return task.end
 

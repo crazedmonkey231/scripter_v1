@@ -39,7 +39,7 @@ async def main():
                 shared.running = False
             do_bindings(event)
         if not shared.paused:
-            shared.screen.fill("dark gray")
+            shared.screen.fill("gray")
             if level.background is not None:
                 shared.canvas.blit(level.background, shared.screen_rect, shared.screen_rect)
             else:

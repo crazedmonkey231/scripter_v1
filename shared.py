@@ -49,6 +49,13 @@ screen_rect: Rect = Rect(*camera_topleft, *screen_size)
 camera_target: Vector2 = Vector2(canvas_size_half)
 
 
+def set_canvas(surface: Surface):
+    global canvas, canvas_size, canvas_size_half
+    canvas = surface
+    canvas_size = Vector2(surface.get_rect().size)
+    canvas_size_half = canvas_size / 2
+
+
 def local_to_world_pos(pos):
     return Vector2(pos) + camera_topleft
 
