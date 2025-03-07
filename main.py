@@ -48,6 +48,7 @@ async def main():
             level.draw(shared.canvas)
             exec_tasks(TT_OVERLAY)
             shared.screen.blit(shared.canvas, (0, 0), shared.screen_rect)
+            exec_tasks(TT_SCREEN)
         pygame.display.flip()
         shared.delta_time = shared.clock.tick(shared.fps) / shared.delta_slowdown
         pygame.display.set_caption(f"Fps: {int(shared.clock.get_fps())}")

@@ -10,6 +10,7 @@ import util
 TT_TASK = 0
 TT_DRAW = 1
 TT_OVERLAY = 2
+TT_SCREEN = 3
 
 
 class Task(object):
@@ -415,7 +416,8 @@ _bindings: dict[int, list[Task]] = {}
 _tasks: dict[int, list[Task]] = {
     TT_TASK: [],
     TT_DRAW: [],
-    TT_OVERLAY: []
+    TT_OVERLAY: [],
+    TT_SCREEN: []
 }
 
 
