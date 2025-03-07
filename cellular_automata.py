@@ -1,9 +1,11 @@
 import random
 import pygame
+from pygame import Vector2
+
 import shared
 from level import level
 from playercontroller import PlayerController
-from task_manager import Task
+from task_manager import Task, Sequencer, TT_DRAW
 
 WIDTH = int(shared.canvas_size.x)
 HEIGHT = int(shared.canvas_size.y)
@@ -147,7 +149,7 @@ funcs = {
 active_cells = set()
 
 
-def update_particles():
+def update_particles(task):
     global grid_map
     global active_cells
 
@@ -190,7 +192,7 @@ def update_particles():
     active_cells = new_active
 
 
-def draw_grid(surface):
+def draw_grid(task):
     """ Draws the grid using pygame. """
     for i in range(GRID_WIDTH * GRID_HEIGHT):
         x = i // GRID_HEIGHT
@@ -199,7 +201,8 @@ def draw_grid(surface):
         if (x, y) in grid_map:
             g_pos = grid_map[(x, y)]
             color = COLORS[g_pos.cell_type]
-        pygame.draw.rect(surface, color, (x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(shared.canvas, color, (x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE))
+    return task.cont
 
 
 def spawn_particle(x, y, particle_type):
@@ -228,11 +231,46 @@ def init():
         else:
             return task.end
 
-    Task(mouse_clicks, "mouse_clicks").start()
+    Sequencer(
+        Task(mouse_clicks),
+        Task(update_particles)
+    ).build(True, True).start()
 
+    LAYERS = 3  # Number of parallax layers
+    SPEED_MULTIPLIERS = [0.2, 0.4, 0.6]  # How much each layer moves with the player
+    stars = []
+    num_stars = 100
 
-def game_loop(task):
-    update_particles()
-    draw_grid(shared.canvas)
-    return task.cont
+    v = (0, 1)
+    r = shared.canvas.get_rect()
+
+    for _ in range(LAYERS):
+        layer_stars = []
+        for _ in range(num_stars // LAYERS):
+            x = random.randint(0, r.width)
+            y = random.randint(0, r.height)
+            layer_stars.append([x, y])  # Store (x, y) position
+        stars.append(layer_stars)
+
+    def parallax_effect(task):
+        for layer in range(LAYERS):
+            for star in stars[layer]:
+                star[0] -= v[0] * SPEED_MULTIPLIERS[layer]
+                star[0] %= r.width
+
+                star[1] += v[1] * SPEED_MULTIPLIERS[layer]
+                star[1] %= r.height
+
+                # Draw star with different brightness for depth effect
+                brightness = 100 + layer * 50
+                color = (brightness, brightness, brightness)
+                center = Vector2(star) + Vector2(r.center) - Vector2(r.size) // 2
+                radius = 2 - layer // 2
+                pygame.draw.circle(shared.canvas, color, center, radius)
+        return task.cont
+
+    Sequencer(
+        Task(draw_grid),
+        Task(parallax_effect)
+    ).build(True, True).start(TT_DRAW)
 

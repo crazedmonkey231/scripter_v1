@@ -9,44 +9,44 @@
 # ///
 
 import asyncio
-import pygame
 import numpy
 import PIL
 
-import shared
-import util
 import game
-from binding_manager import do_bindings
-from level import level
-from task_manager import task_manager, Task, Sequencer, TimeWait, Transition
+from task_manager import *
 
-
+""" Debug print numpy/pil """
 if shared.debug:
     util.log([numpy, PIL])
 
+""" Startup sequence """
 Sequencer(
     TimeWait(0.25),
-    Transition(time=1),
+    Transition(time=0.1),
     TimeWait(0.25),
     Task(game.run_game)
-).build(False, False, "loader").start()
+).build(False, False).start()
+
+""" Level update """
+Task(level.update).start()
 
 
 async def main():
+    """ Main loop """
     while shared.running:
-        for event in pygame.event.get():
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 shared.running = False
-            do_bindings(event)
+                break
+            exec_binding(event)
         if not shared.paused:
             shared.screen.fill("gray")
-            if level.background is not None:
-                shared.canvas.blit(level.background, shared.screen_rect, shared.screen_rect)
-            else:
-                shared.canvas.fill("black", shared.screen_rect)
-            task_manager.run_task_manager()
-            level.update()
+            exec_tasks(TT_TASK)
+            level.draw_bg(shared.canvas)
+            exec_tasks(TT_DRAW)
             level.draw(shared.canvas)
+            exec_tasks(TT_OVERLAY)
             shared.screen.blit(shared.canvas, (0, 0), shared.screen_rect)
         pygame.display.flip()
         shared.delta_time = shared.clock.tick(shared.fps) / shared.delta_slowdown

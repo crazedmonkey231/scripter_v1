@@ -1,17 +1,35 @@
+import random
+
 import pygame
 from pygame import Surface, Vector2, Rect
-from pygame.sprite import Sprite, GroupSingle
+from pygame.sprite import Sprite, GroupSingle, DirtySprite
 import collisions
 import game_object
 import shared
 import util
-from binding_manager import add_binding
 from level import level, add_collision_handler
 from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow, CameraUpdate
+    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow, CameraUpdate, SimpleRotate
 
 
-class PlayerController(Sprite):
+def click(task, *args, **kwargs):
+    if pygame.mouse.get_pressed()[0]:
+        # gif = shared.get_gif("ball")
+        sprite = shared.get_plain_sprite("fsh")
+        sprite.rect.center = shared.get_mouse_pos()
+        sprite.layer = 0
+        level.add(sprite)
+        # sprite = game_object.spawn_game_object("simple_effect", shared.get_mouse_pos())
+        shared.camera_target = shared.get_mouse_pos()
+        Sequencer(
+            # CircleFollow(sprite, kwargs['target'], 50, 150, True, 1, True),
+            # SimpleRotate(sprite),
+            LerpRotation(sprite, shared.screen_size_half, True),
+        ).build(True, True).start()
+    return task.cont
+
+
+class PlayerController(DirtySprite):
     def __init__(self):
         super().__init__()
         size = (1, 1)
@@ -19,12 +37,17 @@ class PlayerController(Sprite):
         self.image.fill((0, 0, 0, 0))
         self.rect = self.image.get_rect(center=shared.screen_size_half)
 
-        # CameraUpdate().start()
+        CameraUpdate().start()
 
-        def toggle_pause(event):
-            if event.key == pygame.K_SPACE:
+        def toggle_pause(task):
+            if not self.alive():
+                return task.end
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
                 shared.paused = not shared.paused
-        add_binding(pygame.KEYDOWN, self, toggle_pause)
+            return task.cont
+
+        Task(toggle_pause).bind(pygame.KEYDOWN)
 
         # body, shape = util.create_physics_box(size, density=1000, mass=100, friction=10,
         #                                       body_type=util.BODY_TYPE_KINEMATIC,
@@ -38,73 +61,52 @@ class PlayerController(Sprite):
 
         # add_collision_handler(collisions.CT_DEFAULT, collisions.CT_DEFAULT, lambda i, j, k: True)
 
-        count = [0, True]
+        params = ([], {"target": self})
+        Task(click, params).bind(pygame.MOUSEBUTTONDOWN)
 
-        def click(event):
-            if event.button == 1:
-                pass
+        def mv(task):
+            if not self.alive():
+                return task.end
+            self.rect.center = shared.get_mouse_pos()
+            return task.cont
 
-                # gif = shared.get_gif("ball")
-                sprite = shared.get_plain_sprite("fsh")
-                sprite.rect.center = event.pos
-                sprite.layer = 0
-                level.add(sprite)
-
-                Sequencer(
-                    CircleFollow(sprite, self, 50, 100, True, 1, True),
-                    # LerpRotation(sprite, shared.screen_size_half, True),
-                ).build(True, True).start()
-
-                # Sequencer(
-                #     # GifAnimation(sprite, gif, 125),
-                #     # LerpPosition(sprite, pos),
-                #     PlaySound("chime_bell"),
-                #     TickWait(50),
-                #     Sequencer(
-                #         LerpPosition(sprite, self, True),
-                #         LerpRotation(sprite, self, True),
-                #         DestroySpritePosition(sprite, self),
-                #     ).on_end(
-                #         PlaySound("chime_bell")
-                #     ).build(True, True),
-                # ).build(True).start()
-
-                # Sequencer(
-                #     LerpRotation(sprite, shared.screen_size_half),
-                #     TickWait(15),
-                #     LerpPosition(sprite, shared.screen_size_half),
-                #     TickWait(15),
-                #     Sequencer(
-                #         LerpPosition(sprite, self, True),
-                #         LerpRotation(sprite, self, True),
-                #         DestroySpritePosition(sprite, self)
-                #     ).build(True, True),
-                # ).build(True).start()
-
-                # Sequencer(
-                #     LerpPosition(sprite, self),
-                #     LerpRotation(sprite, self),
-                # ).build(True, True).start()
-
-                # LerpRotation(sprite, self).start()
-                # LerpPosition(sprite, self).start()
-
-                # Sequencer(
-                #     TickWait(5),
-                #     # LerpPositionArch(sprite, Vector2(event.pos), shared.screen_size_half, 500, True),
-                #     # TickWait(5),
-                #     # LerpPosition(sprite, shared.screen_size_half, Vector2(event.pos), 500, True),
-                #     # TickWait(5),
-                #     LerpRotation(sprite, self),
-                #     TickWait(5),
-                #     DestroySprite(sprite)
-                # ).build(True).start()
-
-        add_binding(pygame.MOUSEBUTTONDOWN, self, click)
-
-        def mv(event):
-            self.rect.center = shared.local_to_world_pos(event.pos)
-            # self.body.position = util.flip_y(self.rect.center)
-            shared.camera_target = self.rect.center
-
-        add_binding(pygame.MOUSEMOTION, self, mv)
+        # Task(mv).bind(pygame.MOUSEMOTION)
+        Task(mv).start()
+        #
+        # LAYERS = 3  # Number of parallax layers
+        # SPEED_MULTIPLIERS = [0.2, 0.4, 0.6]  # How much each layer moves with the player
+        # stars = []
+        # num_stars = 100
+        #
+        # v = (0, 1)
+        # r = shared.canvas.get_rect()
+        #
+        # for _ in range(LAYERS):
+        #     layer_stars = []
+        #     for _ in range(num_stars // LAYERS):
+        #         x = random.randint(0, r.width)
+        #         y = random.randint(0, r.height)
+        #         layer_stars.append([x, y])  # Store (x, y) position
+        #     stars.append(layer_stars)
+        #
+        # def parallax_effect(task):
+        #     if not self.alive():
+        #         return task.end
+        #
+        #     for layer in range(LAYERS):
+        #         for star in stars[layer]:
+        #             star[0] -= v[0] * SPEED_MULTIPLIERS[layer]
+        #             star[0] %= r.width
+        #
+        #             star[1] += v[1] * SPEED_MULTIPLIERS[layer]
+        #             star[1] %= r.height
+        #
+        #             # Draw star with different brightness for depth effect
+        #             brightness = 100 + layer * 50
+        #             color = (brightness, brightness, brightness)
+        #             center = Vector2(star) + Vector2(r.center) - Vector2(r.size) // 2
+        #             radius = 2 - layer // 2
+        #             pygame.draw.circle(shared.canvas, color, center, radius)
+        #     return task.cont
+        #
+        # Task(parallax_effect).start(1)

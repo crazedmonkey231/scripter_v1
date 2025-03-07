@@ -6,6 +6,5 @@ import platformer as game
 
 def run_game(task):
     game.init()
-    Task(game.game_loop, "game_loop").start()
     return task.end
 

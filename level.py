@@ -47,6 +47,12 @@ class Level(LayeredUpdates):
         self.space.step(shared.space_delta_time)
         super().update(*args, **kwargs)
 
+    def draw_bg(self, surface: Surface):
+        if self.background:
+            surface.blit(self.background, (0, 0))
+        else:
+            surface.fill("black")
+
     def draw(self, surface):
         surface.fblits([(i.image, i.rect) for i in filter(lambda x: shared.screen_rect.colliderect(x.rect),
                                                           self.sprites())])

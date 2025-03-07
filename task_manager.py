@@ -7,14 +7,17 @@ from typing import Callable
 from level import level
 import util
 
+TT_TASK = 0
+TT_DRAW = 1
+TT_OVERLAY = 2
+
 
 class Task(object):
     end = 0
     cont = 1
     wait = 2
 
-    def __init__(self, task_func, name: str = "", params=([], {})):
-        self.name: str = name if name else f"{self}-{util.generate_simple_id()}"
+    def __init__(self, task_func, params=([], {})):
         self.task_func: Callable[[Task, list, dict], int] = task_func
         self.args: list = params[0]
         self.kwargs: dict = params[1]
@@ -22,16 +25,17 @@ class Task(object):
     def execute(self):
         return self.task_func(self, *self.args, **self.kwargs)
 
-    def start(self):
-        task_manager.tasks[self.name] = self
+    def start(self, task_type=TT_TASK):
+        _tasks[task_type].append(self)
 
-    def done(self):
-        if self.name in task_manager.tasks:
-            del task_manager.tasks[self.name]
+    def bind(self, binding: int):
+        if binding not in _bindings:
+            _bindings[binding] = []
+        _bindings[binding].append(self)
 
 
 class CameraUpdate(Task):
-    def __init__(self, name: str = "", params=([], {})):
+    def __init__(self, params=([], {})):
         def update(task):
             if shared.camera_target is not None:
                 camera_center = shared.camera_topleft + shared.screen_size_half
@@ -45,12 +49,12 @@ class CameraUpdate(Task):
             else:
                 return task.end
 
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class LerpPosition(Task):
-    def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False, move_speed: float = 300,
-                 name: str = "", params=([], {})):
+    def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False,
+                 move_speed: float = 300, params=([], {})):
         def update(task):
             if not sprite.alive():
                 return task.end
@@ -79,12 +83,12 @@ class LerpPosition(Task):
             sprite.rect.center = center + dv
             return task.wait
 
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class LerpRotation(Task):
-    def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False, rotation_speed: float = 10,
-                 rotation_lag=1, name: str = "", params=([], {})):
+    def __init__(self, sprite: Sprite, target: Sprite | Vector2, looping: bool = False,
+                 rotation_speed: float = 10, rotation_lag=1, params=([], {})):
 
         if not hasattr(sprite, "original_image"):
             sprite.original_image = sprite.image.copy()
@@ -116,21 +120,41 @@ class LerpRotation(Task):
                     return task.cont
                 return task.end
 
-        super().__init__(update, name, params)
+        super().__init__(update, params)
+
+
+class SimpleRotate(Task):
+    def __init__(self, sprite: Sprite, rotation_speed=100, params=([], {})):
+
+        if not hasattr(sprite, "original_image"):
+            sprite.original_image = sprite.image.copy()
+
+        if not hasattr(sprite, "angle"):
+            sprite.angle = 0
+
+        def update(task):
+            if not sprite.alive():
+                return task.end
+            sprite.angle += rotation_speed * shared.delta_time
+            sprite.angle %= 360
+            sprite.image, sprite.rect = util.rotate_image(sprite.original_image, sprite.angle, sprite.rect.center)
+            return task.cont
+
+        super().__init__(update, params)
 
 
 class DestroySprite(Task):
-    def __init__(self, sprite: Sprite, name: str = "", params=([], {})):
+    def __init__(self, sprite: Sprite, params=([], {})):
         def destroy(task):
             if sprite.alive():
+                sprite.visible = 0
                 sprite.kill()
             return task.end
-        super().__init__(destroy, name, params)
+        super().__init__(destroy, params)
 
 
 class DestroySpritePosition(Task):
-    def __init__(self, sprite: Sprite, target: Sprite | Vector2, threshold: float = 0.5, name: str = "",
-                 params=([], {})):
+    def __init__(self, sprite: Sprite, target: Sprite | Vector2, threshold: float = 0.5, params=([], {})):
         def destroy(task):
             if not sprite.alive():
                 return task.end
@@ -146,47 +170,48 @@ class DestroySpritePosition(Task):
             direction = target_pos - center
             if direction.length() < threshold:
                 if sprite.alive():
+                    sprite.visible = 0
                     sprite.kill()
                 return task.end
             return task.cont
-        super().__init__(destroy, name, params)
+        super().__init__(destroy, params)
 
 
 class CountTask(Task):
-    def __init__(self, task_func, name: str = "", params=([], {})):
+    def __init__(self, task_func, params=([], {})):
         self.counter = 0
-        super().__init__(task_func, name, params)
+        super().__init__(task_func, params)
 
 
 class DelayTask(CountTask):
-    def __init__(self, task_func, name: str = "", params=([], {})):
-        super().__init__(task_func, name, params)
+    def __init__(self, task_func, params=([], {})):
+        super().__init__(task_func, params)
 
 
 class TickWait(DelayTask):
-    def __init__(self, ticks: int, name: str = "", params=([], {})):
+    def __init__(self, ticks: int, params=([], {})):
         def tick(task):
             self.counter += 1
             if self.counter == ticks:
                 self.counter = 0
                 return task.cont
             return task.wait
-        super().__init__(tick, name, params)
+        super().__init__(tick, params)
 
 
 class TimeWait(DelayTask):
-    def __init__(self, time: float, name: str = "", params=([], {})):
+    def __init__(self, time: float, params=([], {})):
         def update(task):
             self.counter += shared.delta_time
             if time <= self.counter:
                 self.counter = 0
                 return task.cont
             return task.wait
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class PlaySound(CountTask):
-    def __init__(self, sound_name: str, looping: bool = False, name: str = "", params=([], {})):
+    def __init__(self, sound_name: str, looping: bool = False, params=([], {})):
         s_data = [True, shared.get_sound(sound_name)]
 
         def play_sound(task):
@@ -203,12 +228,12 @@ class PlaySound(CountTask):
                         s_data[0] = True
                     return task.wait
                 return task.end
-        super().__init__(play_sound, name, params)
+        super().__init__(play_sound, params)
 
 
 class GifAnimation(CountTask):
     def __init__(self, sprite: Sprite, gif: str | list[Surface], gif_speed: float = 1, looping: bool = True,
-                 name: str = "", params=([], {})):
+                 params=([], {})):
         g = None
         if isinstance(gif, str):
             g = shared.get_gif(gif)
@@ -231,12 +256,12 @@ class GifAnimation(CountTask):
                     return task.end
                 self.counter %= len(g)
                 return task.cont
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class CircleFollow(CountTask):
     def __init__(self, sprite: Sprite, target_sprite: Sprite, radius: float = 100, move_speed: float = 300,
-                 clockwise=True, step_size: int = 10, looping: bool = False, name: str = "", params=([], {})):
+                 clockwise=True, step_size: int = 10, looping: bool = False, params=([], {})):
         move_speed = abs(move_speed)
         i = 1 if clockwise else -1
         sprite.rect.center = Vector2(target_sprite.rect.center[0] + math.cos(0) * radius,
@@ -258,12 +283,12 @@ class CircleFollow(CountTask):
                     return task.wait
                 return task.end
             return task.cont
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class LerpLineTask(CountTask):
     def __init__(self, sprite: Sprite, line: list[Vector2], move_speed: float = 300, looping: bool = False,
-                 name: str = "", params=([], {})):
+                 params=([], {})):
         def update(task):
             if not sprite.alive():
                 return task.end
@@ -278,33 +303,33 @@ class LerpLineTask(CountTask):
                     return task.end
                 self.counter %= len(line)
                 return task.cont
-        super().__init__(update, name, params)
+        super().__init__(update, params)
 
 
 class LerpPositionLine(LerpLineTask):
     def __init__(self, sprite: Sprite, start: Vector2, destination: Vector2, move_speed: float = 300,
-                 looping: bool = False, name: str = "", params=([], {})):
+                 looping: bool = False, params=([], {})):
         line = util.generate_line(start, destination)
-        super().__init__(sprite, line, move_speed, looping, name, params)
+        super().__init__(sprite, line, move_speed, looping, params)
 
 
 class LerpPositionArch(LerpLineTask):
     def __init__(self, sprite: Sprite, start: Vector2, destination: Vector2, move_speed: float = 300,
                  looping: bool = False, max_arch_height: float = 100, max_arch_delta: float = 10, inverse: bool = False,
-                 name: str = "", params=([], {})):
+                 params=([], {})):
         line = util.generate_arch(start, destination, max_arch_height, max_arch_delta, inverse)
-        super().__init__(sprite, line, move_speed, looping, name, params)
+        super().__init__(sprite, line, move_speed, looping, params)
 
 
 class LerpPositionCircle(LerpLineTask):
-    def __init__(self, sprite: Sprite, center: Vector2, radius: float = 100, move_speed: float = 300, clockwise=True,
-                 looping: bool = False, name: str = "", params=([], {})):
+    def __init__(self, sprite: Sprite, center: Vector2, radius: float = 100, move_speed: float = 300,
+                 clockwise=True, looping: bool = False, params=([], {})):
         line = util.generate_circle(center, radius, clockwise)
-        super().__init__(sprite, line, move_speed, looping, name, params)
+        super().__init__(sprite, line, move_speed, looping, params)
 
 
 class Transition(CountTask):
-    def __init__(self, image: str | Surface = "intro", center=Vector2(shared.screen_size_half), time=3, name: str = "",
+    def __init__(self, image: str | Surface = "intro", center=Vector2(shared.screen_size_half), time=3,
                  params=([], {})):
         surf = pygame.Surface(shared.screen_size).convert_alpha()
         surf.fill((0, 0, 0, 255))
@@ -331,16 +356,16 @@ class Transition(CountTask):
                 self.counter = 0
                 return task.cont
 
-        super().__init__(update, name, params)
+        super().__init__(update, params)
         self.counter = time
         self.timer_reset = self.counter
         self.timer_h = self.counter / 2
 
 
 class Sequencer(object):
-    def __init__(self, *tasks):
+    def __init__(self, *seq_tasks):
         """Sequencer for game actions"""
-        self.task_list: list[Task] = list(tasks)
+        self.task_list: list[Task] = list(seq_tasks)
         self.current_idx: int = 0
         self.end_tasks: list[Task] = None
 
@@ -349,7 +374,7 @@ class Sequencer(object):
         self.end_tasks = list(end_tasks)
         return self
 
-    def build(self, looping: bool = False, parallel: bool = False, name: str = "", params=([], {})):
+    def build(self, looping: bool = False, parallel: bool = False, params=([], {})):
         """Build the sequencer into a Task"""
         def sequence(task):
             if self.task_list and not util.is_all_of_type(self.task_list, DelayTask):
@@ -383,22 +408,26 @@ class Sequencer(object):
                 self.task_list = None
                 return task.end
 
-        name = name if name else f"{self}-{util.generate_simple_id()}"
-        return Task(sequence, name, params)
+        return Task(sequence, params)
 
 
-class TaskManager(object):
-    def __init__(self):
-        self.tasks: dict[str, Task] = {}
-
-    def run_task_manager(self):
-        for name, task in list(self.tasks.items()):
-            if task is None:
-                del self.tasks[name]
-            else:
-                return_code = task.execute()
-                if return_code == Task.end:
-                    task.done()
+_bindings: dict[int, list[Task]] = {}
+_tasks: dict[int, list[Task]] = {
+    TT_TASK: [],
+    TT_DRAW: [],
+    TT_OVERLAY: []
+}
 
 
-task_manager: TaskManager = TaskManager()
+def exec_binding(event):
+    for i, task in enumerate(_bindings.get(event.type, [])):
+        return_code = task.execute()
+        if return_code == Task.end:
+            del _bindings[event.type][i]
+
+
+def exec_tasks(task_type=TT_TASK):
+    for i, task in enumerate(_tasks[task_type]):
+        return_code = task.execute()
+        if return_code == Task.end:
+            del _tasks[task_type][i]
