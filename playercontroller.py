@@ -18,6 +18,8 @@ def click(task, *args, **kwargs):
         sprite = shared.get_plain_sprite("fsh")
         sprite.rect.center = shared.get_mouse_pos()
         sprite.layer = 0
+        # sprite = Sprite()
+        # sprite.image, sprite.rect = util.make_simple_text(text="hi", rect_kwargs={"center": shared.get_mouse_pos()})
         level.add(sprite)
         # sprite = game_object.spawn_game_object("simple_effect", shared.get_mouse_pos())
         shared.camera_target = shared.get_mouse_pos()

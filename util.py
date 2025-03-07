@@ -336,21 +336,14 @@ def interpolate_color_rgba(color1, color2, factor) -> tuple[int, int, int, int]:
 def make_simple_text(**kwargs) -> tuple[Surface, Rect]:
     """Text maker"""
     text = kwargs.get("text")
-    text_size = 64
-    if ts := kwargs.get("size"):
-        text_size = ts
-    f_color = (255, 255, 255, 255)
-    if fc := kwargs.get("color"):
-        f_color = fc
-    bg_color = (0, 0, 0, 255)
-    if bgc := kwargs.get("bg_color"):
-        bg_color = bgc
-    wrap_length = 300
-    if wl := kwargs.get("wrap_length"):
-        wrap_length = wl
-    f = pygame.font.Font(None, text_size)
-    text = f.render(text, True, f_color, bg_color, wrap_length)
-    text_rect = text.get_rect()
+    text_size = kwargs.get("size", 64)
+    anti_alias = kwargs.get("anti_alias", True)
+    f_color = kwargs.get("color", (255, 255, 255, 255))
+    bg_color = kwargs.get("bg_color", (0, 0, 0, 255))
+    wrap_length = kwargs.get("wrap_length", 300)
+    font = pygame.font.Font(None, text_size)
+    text = font.render(text, anti_alias, f_color, bg_color, wrap_length)
+    text_rect = text.get_rect(**kwargs.get("rect_kwargs", {}))
     if ck := kwargs.get("color_key"):
         text.set_colorkey(ck)
     return text, text_rect

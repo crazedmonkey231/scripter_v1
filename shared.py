@@ -181,7 +181,8 @@ def get_definition(name: str):
 load_definitions()
 
 
-def get_plain_sprite(img: str) -> Sprite:
+def get_plain_sprite(img: str, **kwargs) -> Sprite:
+    """ Get a plain sprite, kwargs are params for shared.get_image """
     sprite: Sprite = Sprite()
-    sprite.image, sprite.rect = get_image(img)
+    sprite.image, sprite.rect = get_image(img, **kwargs)
     return sprite
