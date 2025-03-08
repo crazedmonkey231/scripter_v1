@@ -359,7 +359,7 @@ class LerpPositionCircle(LerpLineTask):
         super().__init__(sprite, line, move_speed, looping, params)
 
 
-class Transition(CountTask):
+class ImageTransition(CountTask):
     def __init__(self, image: str | Surface = "intro", center=Vector2(shared.screen_size_half), time=3,
                  params=([], {})):
         surf = pygame.Surface(shared.screen_size).convert_alpha()
@@ -391,6 +391,29 @@ class Transition(CountTask):
         self.counter = time
         self.timer_reset = self.counter
         self.timer_h = self.counter / 2
+
+
+class FadeTransition(CountTask):
+    def __init__(self, color=(255, 255, 255), fade_in=1, fade_out=2, total_time=3, params=([], {})):
+        surf = pygame.Surface(shared.screen_size).convert_alpha()
+        surf.fill((0, 0, 0, 0))
+
+        def update(task):
+            if total_time < self.counter:
+                return task.end
+            self.counter += shared.delta_time
+            i = surf.copy()
+            if self.counter < fade_in:
+                a = util.map_range_clamped(self.counter, 0, fade_in, 0, 255)
+            elif fade_in <= self.counter < fade_out:
+                a = 255
+            else:
+                a = util.map_range_clamped(self.counter, total_time, fade_out, 0, 255)
+            i.fill((*color, a))
+            shared.screen.blit(i, (0, 0))
+            return task.cont
+
+        super().__init__(update, params)
 
 
 class Sequencer(object):

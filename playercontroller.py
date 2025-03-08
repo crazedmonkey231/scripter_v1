@@ -12,12 +12,13 @@ def click(task, *args, **kwargs):
         level.add(sprite)
         # sprite = game_object.spawn_game_object("simple_effect", shared.get_mouse_pos())
         shared.camera_target = shared.get_mouse_pos()
+        FadeTransition(fade_in=.1, fade_out=.2, total_time=0.3).start(TT_SCREEN)
         Sequencer(
             # CircleFollow(sprite, kwargs['target'], 50, 150, True, 1, True),
             # SimpleRotate(sprite),
             # LerpRotation(sprite, shared.screen_size_half, True),
-            SimpleFloat(sprite),
-            CameraFollow(sprite)
+            CameraFollow(sprite),
+            SimpleFloat(sprite)
         ).build(True, True).start()
     return task.cont
 

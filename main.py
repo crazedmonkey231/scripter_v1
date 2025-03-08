@@ -22,7 +22,7 @@ if shared.debug:
 """ Startup sequence """
 Sequencer(
     TimeWait(0.25),
-    Transition(time=0.1),
+    ImageTransition(time=0.1),
     TimeWait(0.25),
     Task(game.run_game)
 ).build(False, False).start()
