@@ -411,7 +411,7 @@ class FadeTransition(CountTask):
                 a = util.map_range_clamped(self.counter, total_time, fade_out, 0, 255)
             i.fill((*color, a))
             shared.screen.blit(i, (0, 0))
-            return task.cont
+            return task.wait
 
         super().__init__(update, params)
 
