@@ -6,7 +6,7 @@ GRID_WIDTH, GRID_HEIGHT = 10, 10
 SCREEN_WIDTH, SCREEN_HEIGHT = GRID_WIDTH * TILE_SIZE, GRID_HEIGHT * TILE_SIZE
 
 # Buildings
-buildings = {}  # { (x, y): {"id": X, "size": (w, h), "rotated": False} }
+buildings = {}  # { (x, y): {"id": X, "size": (w, h)} }
 grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
 # Pygame setup
@@ -15,6 +15,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 
 # Dragging
+original_building = None
 dragging_building = None
 
 
@@ -34,8 +35,8 @@ def place_building(grid_x, grid_y, width, height, building_id):
     if can_place_building(grid_x, grid_y, width, height):
         for y in range(grid_y, grid_y + height):
             for x in range(grid_x, grid_x + width):
-                grid[y][x] = {"id": building_id, "size": (width, height), "anchor": (grid_x, grid_y)}
-        buildings[(grid_x, grid_y)] = {"id": building_id, "size": (width, height), "rotated": False}
+                grid[y][x] = {"anchor": (grid_x, grid_y)}
+        buildings[(grid_x, grid_y)] = {"id": building_id, "size": (width, height), "anchor": (grid_x, grid_y)}
         return True
     return False
 
@@ -72,10 +73,7 @@ def rotate_building(grid_x, grid_y):
         remove_building(grid_x, grid_y)
 
         # Try to place rotated version
-        if place_building(grid_x, grid_y, new_width, new_height, building["id"]):
-            buildings[(grid_x, grid_y)]["rotated"] = not building["rotated"]
-        else:
-            # If rotation fails, put the old version back
+        if not place_building(grid_x, grid_y, new_width, new_height, building["id"]):
             place_building(grid_x, grid_y, old_width, old_height, building["id"])
 
 
@@ -101,20 +99,14 @@ while running:
             if event.button == 1 and dragging_building:  # Release to place
                 new_x, new_y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
                 width, height = dragging_building["size"]
-
                 if not place_building(new_x, new_y, width, height, dragging_building["id"]):
-                    place_building(*dragging_building, width, height, dragging_building["id"])  # Snap back
+                    place_building(*dragging_building["anchor"], width, height, dragging_building["id"])  # Snap back
                 dragging_building = None  # Stop dragging
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 if dragging_building:
                     size = dragging_building["size"]
                     dragging_building["size"] = (size[1], size[0])
-
-    # Get mouse position if dragging
-    if dragging_building:
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        grid_x, grid_y = mouse_x // TILE_SIZE, mouse_y // TILE_SIZE
 
     # Draw Grid
     for y in range(GRID_HEIGHT):
@@ -130,6 +122,8 @@ while running:
 
     # Draw Dragging Preview
     if dragging_building:
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        grid_x, grid_y = mouse_x // TILE_SIZE, mouse_y // TILE_SIZE
         width, height = dragging_building["size"]
         for dy in range(height):
             for dx in range(width):
