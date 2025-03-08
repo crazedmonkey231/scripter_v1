@@ -38,17 +38,31 @@ class Task(object):
 class CameraUpdate(Task):
     def __init__(self, params=([], {})):
         def update(task):
-            if shared.camera_target is not None:
-                camera_center = shared.camera_topleft + shared.screen_size_half
-                dv = shared.camera_target - camera_center
-                if dv.length() > 1:
-                    camera_center += dv.normalize() * (dv.length() * 1 / shared.camera_lag) * shared.delta_time
-                shared.camera_topleft = camera_center - shared.screen_size_half
-                shared.screen_rect.topleft = shared.camera_topleft
-                shared.screen_rect.size = shared.screen_size
-                return task.cont
-            else:
+            if shared.camera_target is None:
                 return task.end
+            camera_center = shared.camera_topleft + shared.screen_size_half
+            dv = shared.camera_target - camera_center
+            if dv.length() > 1:
+                camera_center += dv.normalize() * (dv.length() * 1 / shared.camera_lag) * shared.delta_time
+            shared.camera_topleft = camera_center - shared.screen_size_half
+            shared.screen_rect.topleft = shared.camera_topleft
+            shared.screen_rect.size = shared.screen_size
+            return task.cont
+
+        super().__init__(update, params)
+
+
+class CameraFollow(Task):
+    def __init__(self, sprite: Sprite, camera_lag=0.01, params=([], {})):
+        old_lag = shared.camera_lag
+        shared.camera_lag = camera_lag
+
+        def update(task):
+            if not sprite.alive():
+                shared.camera_lag = old_lag
+                return task.end
+            shared.camera_target = sprite.rect.center
+            return task.cont
 
         super().__init__(update, params)
 
@@ -139,6 +153,22 @@ class SimpleRotate(Task):
             sprite.angle += rotation_speed * shared.delta_time
             sprite.angle %= 360
             sprite.image, sprite.rect = util.rotate_image(sprite.original_image, sprite.angle, sprite.rect.center)
+            return task.cont
+
+        super().__init__(update, params)
+
+
+class SimpleFloat(Task):
+    def __init__(self, sprite: Sprite, cos_amp=25, cos_speed=0.01, sin_amp=25, sin_speed=0.01, params=([], {})):
+
+        start_pos = Vector2(sprite.rect.center)
+
+        def update(task):
+            if not sprite.alive():
+                return task.end
+            dx = util.float_movement_cos(cos_amp, cos_speed)
+            dy = util.float_movement_sin(sin_amp, sin_speed)
+            sprite.rect.center = start_pos + Vector2(dx, dy)
             return task.cont
 
         super().__init__(update, params)

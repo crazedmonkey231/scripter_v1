@@ -1,15 +1,4 @@
-import random
-
-import pygame
-from pygame import Surface, Vector2, Rect
-from pygame.sprite import Sprite, GroupSingle, DirtySprite
-import collisions
-import game_object
-import shared
-import util
-from level import level, add_collision_handler
-from task_manager import Task, LerpPosition, LerpPositionArch, LerpPositionCircle, Sequencer, TickWait, DestroySprite, \
-    LerpRotation, DestroySpritePosition, GifAnimation, PlaySound, CircleFollow, CameraUpdate, SimpleRotate
+from task_manager import *
 
 
 def click(task, *args, **kwargs):
@@ -26,12 +15,14 @@ def click(task, *args, **kwargs):
         Sequencer(
             # CircleFollow(sprite, kwargs['target'], 50, 150, True, 1, True),
             # SimpleRotate(sprite),
-            LerpRotation(sprite, shared.screen_size_half, True),
+            # LerpRotation(sprite, shared.screen_size_half, True),
+            SimpleFloat(sprite),
+            CameraFollow(sprite)
         ).build(True, True).start()
     return task.cont
 
 
-class PlayerController(DirtySprite):
+class PlayerController(Sprite):
     def __init__(self):
         super().__init__()
         size = (1, 1)
