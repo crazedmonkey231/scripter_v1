@@ -7,15 +7,20 @@ HEIGHT = 480
 TILE_SIZE = 32
 GRID_WIDTH, GRID_HEIGHT = 10, 10
 
-grid_items = {}
+ITEM_TYPES = {
+    "House": {"shape": [(0, 0), (1, 0), (0, 1), (1, 1)], "anchor_offset": (1, 1)},
+    "T": {"shape": [(0, 0), (1, 0), (2, 0), (1, 1)], "anchor_offset": (1, 0)}
+}
+
+
+class Item(object):
+    def __init__(self, shape, anchor_offset):
+        self.shape = [*shape]
+        self.anchor_offset = (anchor_offset[0], anchor_offset[1])
+
+
+grid_items: dict[tuple[int, int], Item] = {}
 grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
-
-
-def item_types():
-    return {
-        "House": {"shape": [(0, 0), (1, 0), (0, 1), (1, 1)], "anchor_offset": (1, 1)},
-        "T": {"shape": [(0, 0), (1, 0), (2, 0), (1, 1)], "anchor_offset": (1, 0)}
-    }
 
 
 def get_grid_pos(pos):
@@ -25,11 +30,13 @@ def get_grid_pos(pos):
 def get_item_at(pos):
     x, y = pos
     key = grid[y][x]
-    return grid_items[key] if key else None
+    item: Item = grid_items[key] if key else None
+    return item
 
 
 def spawn_item(grid_pos, item_id):
-    item = item_types()[item_id]
+    i = ITEM_TYPES[item_id]
+    item = Item(i["shape"], i["anchor_offset"])
     place_item(grid_pos, item)
 
 
@@ -38,14 +45,14 @@ def is_invalid_tile(pos):
     return not 0 <= x < GRID_WIDTH or not 0 <= y < GRID_HEIGHT or grid[y][x]
 
 
-def can_place(grid_pos, item):
+def can_place(grid_pos, item: Item):
     if not item:
         return False
     can = True
-    offset = item["anchor_offset"]
+    offset = item.anchor_offset
     x = grid_pos[0] - offset[0]
     y = grid_pos[1] - offset[1]
-    for point in item["shape"]:
+    for point in item.shape:
         dx = point[0] + x
         dy = point[1] + y
         if is_invalid_tile((dx, dy)):
@@ -54,13 +61,13 @@ def can_place(grid_pos, item):
     return can
 
 
-def place_item(grid_pos, item):
+def place_item(grid_pos, item: Item):
     can = can_place(grid_pos, item)
     if can:
-        offset = item["anchor_offset"]
+        offset = item.anchor_offset
         x = grid_pos[0] - offset[0]
         y = grid_pos[1] - offset[1]
-        for point in item["shape"]:
+        for point in item.shape:
             dx = point[0] + x
             dy = point[1] + y
             grid[dy][dx] = (x, y)
@@ -68,37 +75,34 @@ def place_item(grid_pos, item):
     return can
 
 
-def remove_item(pos):
-    item = get_item_at(pos)
-    if item:
-        anchor = grid[pos[1]][pos[0]]
-        for point in item["shape"]:
-            dx = point[0] + anchor[0]
-            dy = point[1] + anchor[1]
-            grid[dy][dx] = None
-        del grid_items[anchor]
-    return item
+def remove_item(pos, item):
+    anchor = grid[pos[1]][pos[0]]
+    for point in item.shape:
+        dx = point[0] + anchor[0]
+        dy = point[1] + anchor[1]
+        grid[dy][dx] = None
+    del grid_items[anchor]
 
 
-def rotate_item(item):
+def rotate_item(item: Item):
     if not item:
         return
-    shape = item["shape"]
-    offset = item["anchor_offset"]
+    shape = item.shape
+    offset = item.anchor_offset
     for i, point in enumerate(shape):
         x = point[0] + offset[1] - offset[0]
         y = -point[1] + offset[0] + offset[1]
-        item["shape"][i] = (y, x)
+        item.shape[i] = (y, x)
 
 
-def draw_drag(item):
+def draw_drag(item: Item):
     m_pos = pygame.mouse.get_pos()
     mx = m_pos[0] // TILE_SIZE
     my = m_pos[1] // TILE_SIZE
-    offset = item["anchor_offset"]
+    offset = item.anchor_offset
     x = mx - offset[0]
     y = my - offset[1]
-    for point in item["shape"]:
+    for point in item.shape:
         dx = point[0] + x
         dy = point[1] + y
         color = "red" if is_invalid_tile((dx, dy)) else "yellow"
@@ -120,43 +124,50 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
-# Dragging
-original_item = None
-dragging_item = None
-
 # spawn_item((3, 3), "House")
-spawn_item((1, 0), "T")
-spawn_item((4, 0), "T")
-spawn_item((7, 0), "T")
+spawn_item((2, 0), "T")
+spawn_item((5, 0), "T")
+spawn_item((8, 0), "T")
 
-running = True
-while running:
-    screen.fill((30, 30, 30))
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                p = get_grid_pos(event.pos)
-                original_item = (p, get_item_at(p))
-                dragging_item = remove_item(p)
-        elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                p = get_grid_pos(event.pos)
-                if not place_item(p, dragging_item):
-                    place_item(*original_item)
-                dragging_item = None
-                original_item = None
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_r:
-                rotate_item(dragging_item)
+def main():
+    original_item = None
+    dragging_item = None
 
-    draw_grid()
-    if dragging_item:
-        draw_drag(dragging_item)
+    running = True
+    while running:
+        screen.fill((30, 30, 30))
 
-    pygame.display.flip()
-    clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    p = get_grid_pos(event.pos)
+                    i = get_item_at(p)
+                    original_item = (p, i)
+                    dragging_item = Item(i.shape, i.anchor_offset)
+                    remove_item(p, i)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    p = get_grid_pos(event.pos)
+                    if dragging_item:
+                        if not place_item(p, dragging_item):
+                            place_item(*original_item)
+                    original_item = None
+                    dragging_item = None
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    rotate_item(dragging_item)
 
-pygame.quit()
+        draw_grid()
+        if dragging_item:
+            draw_drag(dragging_item)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+
+
+main()
