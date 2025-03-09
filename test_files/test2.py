@@ -11,6 +11,10 @@ ITEM_TYPES = {
         "shape": [(0, 0)],
         "anchor_offset": (0, 0)
     },
+    "Line": {
+        "shape": [(0, 0), (0, 1), (0, -1), (0, -2)],
+        "anchor_offset": (0, 0)
+    },
     "Square": {
         "shape": [(0, 0), (1, 0), (0, 1), (1, 1)],
         "anchor_offset": (1, 1)
@@ -21,6 +25,14 @@ ITEM_TYPES = {
     },
     "Cross": {
         "shape": [(0, 0), (0, 1), (1, 0), (-1, 0), (0, -1)],
+        "anchor_offset": (0, 0)
+    },
+    "L": {
+        "shape": [(0, 0), (1, 0), (0, -1), (0, -2)],
+        "anchor_offset": (0, 0)
+    },
+    "Z": {
+        "shape": [(0, 0), (-1, 0), (0, -1), (1, -1)],
         "anchor_offset": (0, 0)
     }
 }
@@ -141,6 +153,9 @@ spawn_item((3, 5), "Square")
 spawn_item((2, 1), "T")
 spawn_item((8, 4), "Single")
 spawn_item((5, 7), "Cross")
+spawn_item((10, 4), "L")
+spawn_item((10, 9), "Z")
+spawn_item((2, 11), "Line")
 
 
 def main():
