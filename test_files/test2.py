@@ -124,7 +124,7 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
-# spawn_item((3, 3), "House")
+spawn_item((3, 3), "House")
 spawn_item((2, 0), "T")
 spawn_item((5, 0), "T")
 spawn_item((8, 0), "T")
@@ -147,7 +147,7 @@ def main():
                     i = get_item_at(p)
                     original_item = (p, i)
                     dragging_item = Item(i.shape, i.anchor_offset)
-                    remove_item(p, i)
+                    remove_item(*original_item)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     p = get_grid_pos(event.pos)
