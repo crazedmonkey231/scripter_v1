@@ -1,32 +1,23 @@
+import shared
 from task_manager import *
 
 
 def click(task, *args, **kwargs):
     if pygame.mouse.get_pressed()[0]:
-        # gif = shared.get_gif("ball")
+
         sprite = shared.get_plain_sprite(None)
         sprite.rect.center = shared.get_mouse_pos()
         sprite.layer = 0
-        # sprite = Sprite()
-        # sprite.image, sprite.rect = util.make_simple_text(text="hi", rect_kwargs={"center": shared.get_mouse_pos()})
-        # sprite = game_object.spawn_game_object("simple_effect", shared.get_mouse_pos())
-        # shared.camera_target = shared.get_mouse_pos()
-        # FadeTransition(fade_in=.1, fade_out=.2, total_time=0.3).start(TT_SCREEN)
 
         def s(task):
             shared.play_sound("chime_bell")
             return task.cont
-        ScrollingText(sprite, "Testing out scrolling text", text_task=Task(s)).start()
+
+        ScrollingText(sprite, "Testing out scrolling text", speed=5, text_task=Task(s),
+                      rect_kwargs={"topleft": shared.get_mouse_pos()}).start()
 
         level.add(sprite)
 
-        # Sequencer(
-        #     # CircleFollow(sprite, kwargs['target'], 50, 150, True, 1, True),
-        #     # SimpleRotate(sprite),
-        #     # LerpRotation(sprite, shared.screen_size_half, True),
-        #     # CameraFollow(sprite),
-        #     SimpleFloat(sprite)
-        # ).build(True, True).start()
     return task.cont
 
 

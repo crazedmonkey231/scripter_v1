@@ -360,20 +360,23 @@ class LerpPositionCircle(LerpLineTask):
 
 
 class ScrollingText(CountTask):
-    def __init__(self, sprite: Sprite, text: str, speed=100, text_task: Task = None, params=([], {}), **kwargs):
+    def __init__(self, sprite: Sprite, text: str, speed=100, text_task: Task = None, skip_key=pygame.K_t,
+                 params=([], {}), **kwargs):
         gif = [0, []]
 
         t = ""
         for c in text:
             t += c
             s, r = util.make_simple_text(**{"text": t, **kwargs})
-            r.center = sprite.rect.center
             gif[1].append((s, r))
 
         def update(task):
             if not sprite.alive():
                 return task.end
             if gif[0] < len(gif[1]):
+                if pygame.key.get_pressed()[skip_key]:
+                    gif[0] = len(gif[1]) - 1
+                    self.counter = 0
                 sprite.image = gif[1][gif[0]][0]
                 sprite.rect = gif[1][gif[0]][1]
                 self.counter += speed * shared.delta_time
