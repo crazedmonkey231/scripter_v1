@@ -138,13 +138,13 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pos = get_grid_pos(event.pos)
-                original_item = (pos, get_item_at(pos))
-                dragging_item = remove_item(pos)
+                p = get_grid_pos(event.pos)
+                original_item = (p, get_item_at(p))
+                dragging_item = remove_item(p)
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                pos = get_grid_pos(event.pos)
-                if not place_item(pos, dragging_item):
+                p = get_grid_pos(event.pos)
+                if not place_item(p, dragging_item):
                     place_item(*original_item)
                 dragging_item = None
                 original_item = None
