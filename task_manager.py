@@ -374,12 +374,12 @@ class ScrollingText(CountTask):
             if not sprite.alive():
                 return task.end
             if gif[0] < len(gif[1]):
+                self.counter += speed * shared.delta_time
                 if pygame.key.get_pressed()[skip_key]:
                     gif[0] = len(gif[1]) - 1
                     self.counter = 0
                 sprite.image = gif[1][gif[0]][0]
                 sprite.rect = gif[1][gif[0]][1]
-                self.counter += speed * shared.delta_time
                 if 1 < self.counter:
                     self.counter = 0
                     gif[0] += 1
