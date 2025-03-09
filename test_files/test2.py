@@ -10,10 +10,12 @@ GRID_WIDTH, GRID_HEIGHT = 10, 10
 grid_items = {}
 grid = [[None for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
 
-ITEM_TYPES = {
-    "House": {"shape": [(0, 0), (1, 0), (0, 1), (1, 1)], "anchor_offset": (1, 1)},
-    "T": {"shape": [(0, 0), (1, 0), (2, 0), (1, 1)], "anchor_offset": (1, 0)}
-}
+
+def item_types():
+    return {
+        "House": {"shape": [(0, 0), (1, 0), (0, 1), (1, 1)], "anchor_offset": (1, 1)},
+        "T": {"shape": [(0, 0), (1, 0), (2, 0), (1, 1)], "anchor_offset": (1, 0)}
+    }
 
 
 def get_grid_pos(pos):
@@ -27,7 +29,7 @@ def get_item_at(pos):
 
 
 def spawn_item(grid_pos, item_id):
-    item = ITEM_TYPES[item_id]
+    item = item_types()[item_id]
     place_item(grid_pos, item)
 
 
@@ -122,8 +124,10 @@ clock = pygame.time.Clock()
 original_item = None
 dragging_item = None
 
-spawn_item((3, 3), "House")
-spawn_item((6, 6), "T")
+# spawn_item((3, 3), "House")
+spawn_item((1, 0), "T")
+spawn_item((4, 0), "T")
+spawn_item((7, 0), "T")
 
 running = True
 while running:
@@ -143,6 +147,7 @@ while running:
                 if not place_item(pos, dragging_item):
                     place_item(*original_item)
                 dragging_item = None
+                original_item = None
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 rotate_item(dragging_item)
