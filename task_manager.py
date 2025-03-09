@@ -359,6 +359,35 @@ class LerpPositionCircle(LerpLineTask):
         super().__init__(sprite, line, move_speed, looping, params)
 
 
+class ScrollingText(CountTask):
+    def __init__(self, sprite: Sprite, text: str, speed=100, text_task: Task = None, params=([], {}), **kwargs):
+        gif = [0, []]
+
+        t = ""
+        for c in text:
+            t += c
+            s, r = util.make_simple_text(**{"text": t, **kwargs})
+            r.center = sprite.rect.center
+            gif[1].append((s, r))
+
+        def update(task):
+            if not sprite.alive():
+                return task.end
+            if gif[0] < len(gif[1]):
+                sprite.image = gif[1][gif[0]][0]
+                sprite.rect = gif[1][gif[0]][1]
+                self.counter += speed * shared.delta_time
+                if 1 < self.counter:
+                    self.counter = 0
+                    gif[0] += 1
+                    if text_task:
+                        text_task.execute()
+                return task.wait
+            return task.cont
+
+        super().__init__(update, params)
+
+
 class ImageTransition(CountTask):
     def __init__(self, image: str | Surface = "intro", center=Vector2(shared.screen_size_half), time=3,
                  params=([], {})):

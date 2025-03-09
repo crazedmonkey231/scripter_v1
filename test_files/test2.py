@@ -3,13 +3,26 @@ import pygame
 WIDTH = 640
 HEIGHT = 480
 
-# Constants
-TILE_SIZE = 32
-GRID_WIDTH, GRID_HEIGHT = 10, 10
+TILE_SIZE = 24
+GRID_WIDTH, GRID_HEIGHT = 15, 15
 
 ITEM_TYPES = {
-    "House": {"shape": [(0, 0), (1, 0), (0, 1), (1, 1)], "anchor_offset": (1, 1)},
-    "T": {"shape": [(0, 0), (1, 0), (2, 0), (1, 1)], "anchor_offset": (1, 0)}
+    "Single": {
+        "shape": [(0, 0)],
+        "anchor_offset": (0, 0)
+    },
+    "Square": {
+        "shape": [(0, 0), (1, 0), (0, 1), (1, 1)],
+        "anchor_offset": (1, 1)
+    },
+    "T": {
+        "shape": [(0, 0), (1, 0), (-1, 0), (0, -1)],
+        "anchor_offset": (0, 0)
+    },
+    "Cross": {
+        "shape": [(0, 0), (0, 1), (1, 0), (-1, 0), (0, -1)],
+        "anchor_offset": (0, 0)
+    }
 }
 
 
@@ -107,7 +120,7 @@ def draw_drag(item: Item):
         dy = point[1] + y
         color = "red" if is_invalid_tile((dx, dy)) else "yellow"
         rect = pygame.Rect(dx * TILE_SIZE, dy * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-        pygame.draw.rect(screen, color, rect, 3)
+        pygame.draw.rect(screen, color, rect, 4)
 
 
 def draw_grid():
@@ -124,10 +137,10 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
-spawn_item((3, 3), "House")
-spawn_item((2, 0), "T")
-spawn_item((5, 0), "T")
-spawn_item((8, 0), "T")
+spawn_item((3, 5), "Square")
+spawn_item((2, 1), "T")
+spawn_item((8, 4), "Single")
+spawn_item((5, 7), "Cross")
 
 
 def main():
@@ -144,10 +157,10 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     p = get_grid_pos(event.pos)
-                    i = get_item_at(p)
-                    original_item = (p, i)
-                    dragging_item = Item(i.shape, i.anchor_offset)
-                    remove_item(*original_item)
+                    if i := get_item_at(p):
+                        original_item = (p, i)
+                        dragging_item = Item(i.shape, i.anchor_offset)
+                        remove_item(*original_item)
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     p = get_grid_pos(event.pos)
