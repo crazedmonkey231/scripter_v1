@@ -13,7 +13,7 @@ def click(task, *args, **kwargs):
             shared.play_sound("chime_bell")
             return task.cont
 
-        ScrollingText(sprite, "Testing out scrolling text", speed=5, text_task=Task(s),
+        ScrollingText(sprite, "Testing out scrolling text", speed=10, on_end=Task(s),
                       rect_kwargs={"topleft": shared.get_mouse_pos()}).start()
 
         level.add(sprite)

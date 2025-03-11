@@ -3,8 +3,8 @@ import pygame
 WIDTH = 640
 HEIGHT = 480
 
-TILE_SIZE = 24
-GRID_WIDTH, GRID_HEIGHT = 15, 15
+TILE_SIZE = 32
+GRID_WIDTH, GRID_HEIGHT = 20, 15
 
 ITEM_TYPES = {
     "Single": {
@@ -67,7 +67,8 @@ def spawn_item(grid_pos, item_id):
 
 def is_invalid_tile(pos):
     x, y = pos
-    return not 0 <= x < GRID_WIDTH or not 0 <= y < GRID_HEIGHT or grid[y][x]
+    not_in_grid = not (0 <= x < GRID_WIDTH) or not (0 <= y < GRID_HEIGHT)
+    return not_in_grid or grid[y][x]
 
 
 def can_place(grid_pos, item: Item):
@@ -149,6 +150,7 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
+
 spawn_item((3, 5), "Square")
 spawn_item((2, 1), "T")
 spawn_item((8, 4), "Single")
@@ -156,6 +158,7 @@ spawn_item((5, 7), "Cross")
 spawn_item((10, 4), "L")
 spawn_item((10, 9), "Z")
 spawn_item((2, 11), "Line")
+spawn_item((4, 11), "Line")
 
 
 def main():
@@ -181,7 +184,16 @@ def main():
                     p = get_grid_pos(event.pos)
                     if dragging_item:
                         if not place_item(p, dragging_item):
-                            place_item(*original_item)
+                            if not place_item(*original_item):
+                                print("err", dragging_item, original_item)
+                                offset = original_item[1].anchor_offset
+                                x = original_item[0][0] - offset[0]
+                                y = original_item[0][1] - offset[1]
+                                for point in original_item[1].shape:
+                                    dx = point[0] + x
+                                    dy = point[1] + y
+                                    grid[dy][dx] = (x, y)
+                                grid_items[(x, y)] = original_item[1]
                     original_item = None
                     dragging_item = None
             elif event.type == pygame.KEYDOWN:

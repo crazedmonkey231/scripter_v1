@@ -361,8 +361,8 @@ class LerpPositionCircle(LerpLineTask):
 
 class ScrollingText(CountTask):
     def __init__(self, sprite: Sprite, text: str, speed=100, text_task: Task = None, skip_key=pygame.K_t,
-                 params=([], {}), **kwargs):
-        gif = [0, []]
+                 on_end: Task = None, params=([], {}), **kwargs):
+        gif = [0, [], False]
 
         t = ""
         for c in text:
@@ -386,6 +386,10 @@ class ScrollingText(CountTask):
                     if text_task:
                         text_task.execute()
                 return task.wait
+            elif gif[0] == len(gif[1]) and not gif[2]:
+                if on_end:
+                    on_end.execute()
+                gif[2] = True
             return task.cont
 
         super().__init__(update, params)
