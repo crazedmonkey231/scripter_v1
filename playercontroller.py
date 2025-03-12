@@ -1,3 +1,4 @@
+import pygame.key
 import shared
 from task_manager import *
 
@@ -13,8 +14,28 @@ def click(task, *args, **kwargs):
             shared.play_sound("chime_bell")
             return task.cont
 
-        ScrollingText(sprite, "Testing out scrolling text", speed=10, on_end=Task(s),
-                      rect_kwargs={"topleft": shared.get_mouse_pos()}).start()
+        def skip(task):
+            if pygame.key.get_pressed()[pygame.K_t]:
+                return task.end
+            return task.cont
+
+        def follow(task):
+            if not sprite.alive():
+                return task.end
+            sprite.rect.bottomright = shared.get_mouse_pos()
+            return task.cont
+
+        test_text = util.make_scroll_text("F", size=150)
+        Sequencer(
+            ScrollingText(sprite, test_text,
+                          speed=10,
+                          on_letter=Task(s),
+                          skip=Task(skip),
+                          on_end=Task(s),
+                          rect_kwargs={"bottomright": shared.get_mouse_pos()}),
+            Task(follow)
+
+        ).build(True, True).start()
 
         level.add(sprite)
 

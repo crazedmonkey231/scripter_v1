@@ -349,6 +349,16 @@ def make_simple_text(**kwargs) -> tuple[Surface, Rect]:
     return text, text_rect
 
 
+def make_scroll_text(text: str, **kwargs):
+    t = ""
+    gif = []
+    for c in text:
+        t += c
+        s, r = make_simple_text(**{"text": t, **kwargs})
+        gif.append((s, r))
+    return gif
+
+
 TREND_NEUTRAL = "Neutral"
 TREND_DECREASING = "Decreasing"
 TREND_INCREASING = "Increasing"

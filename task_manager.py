@@ -1,6 +1,6 @@
 import math
 import pygame
-from pygame import Vector2, Surface
+from pygame import Vector2, Surface, Rect
 from pygame.sprite import Sprite
 import shared
 from typing import Callable
@@ -360,33 +360,32 @@ class LerpPositionCircle(LerpLineTask):
 
 
 class ScrollingText(CountTask):
-    def __init__(self, sprite: Sprite, text: str, speed=100, text_task: Task = None, skip_key=pygame.K_t,
-                 on_end: Task = None, params=([], {}), **kwargs):
+    def __init__(self, sprite: Sprite, text: str | list[tuple[Surface, Rect]], speed=100, on_letter: Task = None,
+                 skip: Task = None, on_end: Task = None, params=([], {}), **kwargs):
         gif = [0, [], False]
 
-        t = ""
-        for c in text:
-            t += c
-            s, r = util.make_simple_text(**{"text": t, **kwargs})
-            gif[1].append((s, r))
+        if isinstance(text, str):
+            gif[1] = util.make_scroll_text(text, **kwargs)
+        else:
+            gif[1] = text
 
         def update(task):
             if not sprite.alive():
                 return task.end
             if gif[0] < len(gif[1]):
                 self.counter += speed * shared.delta_time
-                if pygame.key.get_pressed()[skip_key]:
+                if skip.execute() == Task.end:
                     gif[0] = len(gif[1]) - 1
                     self.counter = 0
                 sprite.image = gif[1][gif[0]][0]
-                sprite.rect = gif[1][gif[0]][1]
+                sprite.rect = sprite.image.get_rect(**kwargs.get("rect_kwargs", {}))
                 if 1 < self.counter:
                     self.counter = 0
                     gif[0] += 1
-                    if text_task:
-                        text_task.execute()
+                    if on_letter:
+                        on_letter.execute()
                 return task.wait
-            elif gif[0] == len(gif[1]) and not gif[2]:
+            elif not gif[2] and gif[0] == len(gif[1]):
                 if on_end:
                     on_end.execute()
                 gif[2] = True
