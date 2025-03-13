@@ -158,7 +158,7 @@ class SimpleRotate(Task):
         super().__init__(update, params)
 
 
-class SimpleFloat(Task):
+class FloatMovement(Task):
     def __init__(self, sprite: Sprite, cos_amp=25, cos_speed=0.01, sin_amp=25, sin_speed=0.01, params=([], {})):
 
         start_pos = Vector2(sprite.rect.center)

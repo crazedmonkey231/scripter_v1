@@ -25,7 +25,7 @@ def click(task, *args, **kwargs):
             sprite.rect.bottomright = shared.get_mouse_pos()
             return task.cont
 
-        test_text = util.make_scroll_text("F", size=150)
+        test_text = util.make_scroll_text("YEEET")
         Sequencer(
             ScrollingText(sprite, test_text,
                           speed=10,
