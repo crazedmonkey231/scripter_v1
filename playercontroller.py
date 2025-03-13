@@ -40,17 +40,17 @@ def scroll():
 
 def click(task, *args, **kwargs):
     if pygame.mouse.get_pressed()[0]:
-        sprite = shared.get_plain_sprite(None)
-        sprite.rect.center = shared.get_mouse_pos()
-        sprite.layer = 0
+        # sprite = shared.get_plain_sprite(None)
+        # sprite.rect.center = shared.get_mouse_pos()
+        # sprite.layer = 0
+        FadeTransition(fade_in=.1, fade_out=.1, total_time=.3).start(TT_SCREEN)
+        # Sequencer(
+        #     ScrollingText(sprite, **scroll()),
+        #     Task(follow, ([sprite], {}))
+        #
+        # ).build(True, True).start()
 
-        Sequencer(
-            ScrollingText(sprite, **scroll()),
-            Task(follow, ([sprite], {}))
-
-        ).build(True, True).start()
-
-        level.add(sprite)
+        # level.add(sprite)
 
     return task.cont
 

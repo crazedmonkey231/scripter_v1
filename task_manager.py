@@ -395,26 +395,27 @@ class ScrollingText(CountTask):
 
 
 class ImageTransition(CountTask):
-    def __init__(self, image: str | Surface = "intro", center=Vector2(shared.screen_size_half), time=3,
-                 params=([], {})):
-        surf = pygame.Surface(shared.screen_size).convert_alpha()
-        surf.fill((0, 0, 0, 255))
+    def __init__(self, surface: Surface = None, image: str | Surface = "intro", center=Vector2(shared.screen_size_half),
+                 time=3, params=([], {})):
+        if surface is None:
+            surface = shared.screen.copy().convert_alpha()
+        surface.fill((0, 0, 0, 255))
         if isinstance(image, str) or image is None:
             img = shared.get_image(image)
-            surf.blit(img[0], center - Vector2(img[1].size) / 2)
+            surface.blit(img[0], center - Vector2(img[1].size) / 2)
         elif isinstance(image, Surface):
-            surf.blit(image, center - Vector2(image.get_rect().size) / 2)
+            surface.blit(image, center - Vector2(image.get_rect().size) / 2)
 
         def update(task):
             if 0 < self.counter:
                 self.counter -= shared.delta_time
-                i = surf.copy()
+                i = surface.copy()
                 if self.counter > self.timer_h:
                     a = util.map_range_clamped(self.counter, self.timer_h, self.timer_reset, 0, 255)
                     i.fill((0, 0, 0, a))
                 else:
                     i.fill((0, 0, 0, util.map_range_clamped(self.counter, self.timer_h, 0, 0, 255)))
-                j = surf.copy()
+                j = surface.copy()
                 j.blit(i, (0, 0))
                 level.background = j
                 return task.wait
@@ -429,15 +430,17 @@ class ImageTransition(CountTask):
 
 
 class FadeTransition(CountTask):
-    def __init__(self, color=(255, 255, 255), fade_in=1, fade_out=2, total_time=3, params=([], {})):
-        surf = pygame.Surface(shared.screen_size).convert_alpha()
-        surf.fill((0, 0, 0, 0))
+    def __init__(self, surface: Surface = None, color=(255, 255, 255), fade_in=1, fade_out=2, total_time=3,
+                 params=([], {})):
+        if surface is None:
+            surface = shared.screen.copy().convert_alpha()
+            surface.fill((0, 0, 0, 0))
 
         def update(task):
             if total_time < self.counter:
                 return task.end
             self.counter += shared.delta_time
-            i = surf.copy()
+            i = surface.copy()
             if self.counter < fade_in:
                 a = util.map_range_clamped(self.counter, 0, fade_in, 0, 255)
             elif fade_in <= self.counter < fade_out:
