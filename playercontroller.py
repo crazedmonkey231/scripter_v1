@@ -3,37 +3,50 @@ import shared
 from task_manager import *
 
 
+def s(task):
+    shared.play_sound("chime_bell")
+    return task.cont
+
+
+def skip(task):
+    if pygame.key.get_pressed()[pygame.K_t]:
+        return task.end
+    return task.cont
+
+
+def follow(task, *args, **kwargs):
+    sprite = args[0]
+    if not sprite.alive():
+        return task.end
+    sprite.rect.bottomright = shared.get_mouse_pos()
+    return task.cont
+
+
+c_text = [{}]
+
+
+def scroll():
+    if not c_text[0]:
+        c_text[0] = {
+            "text": util.make_scroll_text("YEEET"),
+            "speed": 10,
+            "on_letter": Task(s),
+            "skip": Task(skip),
+            "on_end": Task(s),
+            "rect_kwargs": {"bottomright": shared.get_mouse_pos()}
+        }
+    return c_text[0]
+
+
 def click(task, *args, **kwargs):
     if pygame.mouse.get_pressed()[0]:
-
         sprite = shared.get_plain_sprite(None)
         sprite.rect.center = shared.get_mouse_pos()
         sprite.layer = 0
 
-        def s(task):
-            shared.play_sound("chime_bell")
-            return task.cont
-
-        def skip(task):
-            if pygame.key.get_pressed()[pygame.K_t]:
-                return task.end
-            return task.cont
-
-        def follow(task):
-            if not sprite.alive():
-                return task.end
-            sprite.rect.bottomright = shared.get_mouse_pos()
-            return task.cont
-
-        test_text = util.make_scroll_text("YEEET")
         Sequencer(
-            ScrollingText(sprite, test_text,
-                          speed=10,
-                          on_letter=Task(s),
-                          skip=Task(skip),
-                          on_end=Task(s),
-                          rect_kwargs={"bottomright": shared.get_mouse_pos()}),
-            Task(follow)
+            ScrollingText(sprite, **scroll()),
+            Task(follow, ([sprite], {}))
 
         ).build(True, True).start()
 
