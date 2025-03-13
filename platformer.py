@@ -14,7 +14,7 @@ WIDTH = int(shared.screen_size.x // CELL_SIZE + 1)
 HEIGHT = int(shared.screen_size.y // CELL_SIZE)
 
 bg = Surface((WIDTH * CELL_SIZE, HEIGHT * CELL_SIZE)).convert_alpha()
-bg.fill("black")
+bg.fill("dark gray")
 surf = Surface((CELL_SIZE, CELL_SIZE)).convert_alpha()
 
 EMPTY = 0

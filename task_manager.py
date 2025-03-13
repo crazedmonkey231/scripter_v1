@@ -434,7 +434,7 @@ class FadeTransition(CountTask):
                  params=([], {})):
         if surface is None:
             surface = shared.screen.copy().convert_alpha()
-            surface.fill((0, 0, 0, 0))
+        surface.fill((0, 0, 0, 0))
 
         def update(task):
             if total_time < self.counter:

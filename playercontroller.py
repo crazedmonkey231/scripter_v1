@@ -40,10 +40,11 @@ def scroll():
 
 def click(task, *args, **kwargs):
     if pygame.mouse.get_pressed()[0]:
+        pass
         # sprite = shared.get_plain_sprite(None)
         # sprite.rect.center = shared.get_mouse_pos()
         # sprite.layer = 0
-        FadeTransition(fade_in=.1, fade_out=.1, total_time=.3).start(TT_SCREEN)
+        # FadeTransition(fade_in=.1, fade_out=.1, total_time=.3).start(TT_SCREEN)
         # Sequencer(
         #     ScrollingText(sprite, **scroll()),
         #     Task(follow, ([sprite], {}))
@@ -90,15 +91,16 @@ class PlayerController(Sprite):
         params = ([], {"target": self})
         Task(click, params).bind(pygame.MOUSEBUTTONDOWN)
 
-        def mv(task):
-            if not self.alive():
-                return task.end
-            self.rect.center = shared.get_mouse_pos()
-            return task.cont
+        # def mv(task):
+        #     if not self.alive():
+        #         return task.end
+        #     self.rect.center = shared.get_mouse_pos()
+        #     shared.camera_target = shared.get_mouse_pos()
+        #     return task.cont
 
         # Task(mv).bind(pygame.MOUSEMOTION)
-        Task(mv).start()
-        #
+        # Task(mv).start()
+
         # LAYERS = 3  # Number of parallax layers
         # SPEED_MULTIPLIERS = [0.2, 0.4, 0.6]  # How much each layer moves with the player
         # stars = []
